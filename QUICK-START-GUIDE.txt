@@ -1,0 +1,194 @@
+# MOVEIT COMPONENT DEPLOYMENT - QUICK START GUIDE
+
+---
+
+## 5 STORIES - DEPLOY SEPARATELY OR ALL AT ONCE
+
+---
+
+## OPTION 1: DEPLOY ALL 5 STORIES (ONE-SHOT)
+
+**Time:** 25 minutes total
+
+```powershell
+# Run in sequence
+.\Story-1-Prerequisites-Network-Discovery.ps1
+.\Story-2-Network-Security.ps1
+.\Story-3-Load-Balancer.ps1
+.\Story-4-WAF-Policy.ps1
+.\Story-5-Front-Door-Final.ps1
+```
+
+**Done!** Check Desktop for MOVEit-Deployment-Summary.txt
+
+---
+
+## OPTION 2: DEPLOY BY SPRINT/STORY
+
+### SPRINT 1: Foundation (Week 1)
+
+**Story 1: Prerequisites & Network** (5 min)
+```powershell
+.\Story-1-Prerequisites-Network-Discovery.ps1
+```
+Result: Network discovered, deployment RG created
+
+**Story 2: Network Security** (3 min)
+```powershell
+.\Story-2-Network-Security.ps1
+```
+Result: NSG created with firewall rules
+
+**Test:**
+```powershell
+az network nsg show --resource-group rg-networking --name nsg-moveit
+```
+
+---
+
+### SPRINT 2: File Transfer (Week 2)
+
+**Story 3: Load Balancer** (5 min)
+```powershell
+.\Story-3-Load-Balancer.ps1
+```
+Result: FTPS endpoint live at public IP
+
+**Test:**
+```powershell
+$state = Get-Content "$env:USERPROFILE\Desktop\MOVEit-Deployment-State.json" | ConvertFrom-Json
+Write-Host "FTPS Endpoint: $($state.LoadBalancerPublicIP):990"
+Test-NetConnection -ComputerName $state.LoadBalancerPublicIP -Port 990
+```
+
+---
+
+### SPRINT 3: Security & Web (Week 3)
+
+**Story 4: WAF Policy** (4 min)
+```powershell
+.\Story-4-WAF-Policy.ps1
+```
+Result: WAF policy created with OWASP rules
+
+**Story 5: Front Door** (6 min)
+```powershell
+.\Story-5-Front-Door-Final.ps1
+```
+Result: Complete deployment with HTTPS
+
+**Test:**
+```powershell
+$state = Get-Content "$env:USERPROFILE\Desktop\MOVEit-Deployment-State.json" | ConvertFrom-Json
+Write-Host "HTTPS Endpoint: https://$($state.FrontDoorEndpoint)"
+Start-Process "https://$($state.FrontDoorEndpoint)"
+```
+
+---
+
+## WHAT EACH STORY CREATES
+
+| Story | Component | Resource Group | Time | Cost |
+|-------|-----------|----------------|------|------|
+| 1 | Foundation | rg-moveit | 5 min | Free |
+| 2 | NSG + Rules | rg-networking | 3 min | Free |
+| 3 | Load Balancer + Public IP | rg-moveit | 5 min | $18/mo |
+| 4 | WAF Policy | rg-moveit | 4 min | $30/mo |
+| 5 | Front Door + Defender | rg-moveit | 6 min | $35/mo |
+| **TOTAL** | **Complete Stack** | **2 RGs** | **23 min** | **$83/mo** |
+
+---
+
+## STATE FILE TRACKING
+
+All stories share: `%USERPROFILE%\Desktop\MOVEit-Deployment-State.json`
+
+**Check progress anytime:**
+```powershell
+Get-Content "$env:USERPROFILE\Desktop\MOVEit-Deployment-State.json" | ConvertFrom-Json | Format-List
+```
+
+---
+
+## ROLLBACK ANY STORY
+
+### Rollback Story 5 only:
+```powershell
+az afd profile delete --resource-group rg-moveit --profile-name moveit-frontdoor-profile
+```
+
+### Rollback Story 4 only:
+```powershell
+az network front-door waf-policy delete --resource-group rg-moveit --name moveitWAFPolicy
+```
+
+### Rollback Story 3 only:
+```powershell
+az network lb delete --resource-group rg-moveit --name lb-moveit-ftps
+az network public-ip delete --resource-group rg-moveit --name pip-moveit-ftps
+```
+
+### Rollback Everything:
+```powershell
+az group delete --name rg-moveit --yes --no-wait
+az network nsg delete --resource-group rg-networking --name nsg-moveit
+Remove-Item "$env:USERPROFILE\Desktop\MOVEit-Deployment-State.json"
+```
+
+---
+
+## REQUIREMENTS
+
+Before running Story 1:
+- Azure CLI installed
+- PowerShell 5.1+ or PowerShell Core 7+
+- Azure subscription access
+- Existing VNet with MOVEit server at 192.168.0.5
+
+---
+
+## FINAL ENDPOINTS
+
+After all 5 stories:
+
+**FTPS:** [Public IP]:990, 989  
+**HTTPS:** https://[endpoint].azurefd.net
+
+**Cost:** $83/month
+
+---
+
+## FILES IN PACKAGE
+
+```
+Story-1-Prerequisites-Network-Discovery.ps1  (5 min)
+Story-2-Network-Security.ps1                 (3 min)
+Story-3-Load-Balancer.ps1                    (5 min)
+Story-4-WAF-Policy.ps1                       (4 min)
+Story-5-Front-Door-Final.ps1                 (6 min)
+COMPONENT-DEPLOYMENT-README.txt              (full docs)
+QUICK-START-GUIDE.txt                        (this file)
+```
+
+---
+
+## SUPPORT
+
+**View deployed resources:**
+```powershell
+az resource list --resource-group rg-moveit --output table
+```
+
+**Check subscription:**
+```powershell
+az account show
+```
+
+**Start over:**
+```powershell
+Remove-Item "$env:USERPROFILE\Desktop\MOVEit-Deployment-State.json"
+```
+
+---
+
+**Deploy in 5 stories or all at once - your choice!**
