@@ -1,0 +1,376 @@
+================================================================
+BROWSER NUCLEAR CLEANUP - COMPLETE INSTRUCTIONS
+================================================================
+
+USE THIS BEFORE LEAVING CLIENT SITE!
+=====================================
+
+This script will COMPLETELY DELETE all traces of:
+- Git links you visited (claude.ai, github, etc)
+- Files you downloaded (ZIP files, scripts)
+- Your bookmarks
+- Your browsing history
+- Everything from the browser
+
+NO TRACES WILL BE LEFT ON CLIENT LAPTOP!
+
+================================================================
+WHAT GETS DELETED
+================================================================
+
+CHROME:
+-------
+✓ All browsing history
+✓ All bookmarks (both toolbar and other bookmarks)
+✓ All downloads history
+✓ All cache files
+✓ All cookies
+✓ All saved passwords
+✓ All form data (autofill)
+✓ All sessions
+✓ All favicons
+✓ All top sites
+
+EDGE:
+-----
+✓ All browsing history
+✓ All bookmarks
+✓ All downloads history
+✓ All cache files
+✓ All cookies
+✓ All saved passwords
+✓ All form data
+✓ All sessions
+
+FIREFOX:
+--------
+✓ All browsing history
+✓ All bookmarks (including backups)
+✓ All downloads history
+✓ All cache files
+✓ All cookies
+✓ All saved passwords
+✓ All form data
+✓ All sessions
+
+WINDOWS SYSTEM:
+---------------
+✓ Recent files list (all recent items)
+✓ Temporary files (all temp folders)
+✓ Recycle Bin (everything deleted)
+✓ Clipboard content
+✓ DNS cache (removes website name cache)
+✓ Jump lists (recent apps list)
+
+================================================================
+HOW TO USE - STEP BY STEP
+================================================================
+
+BEFORE CLIENT MEETING ENDS:
+1. Download Browser-Nuclear-Cleanup.zip
+2. Extract to Desktop
+3. Save any work you need
+4. Close this browser tab
+
+RUNNING THE SCRIPT:
+1. Find: Browser-Nuclear-Cleanup.ps1 on Desktop
+2. Right-click → "Run with PowerShell"
+3. Type: YES (in capital letters)
+4. Press Enter
+5. Wait 1-2 minutes
+6. Script will ask about Downloads folder
+7. Type: YES to delete recent downloads
+8. Script will ask about Disk Cleanup
+9. Type: YES for thorough cleanup (or "no" to skip)
+10. Done!
+
+VERIFICATION:
+1. Open Chrome/Edge
+2. Press Ctrl+H (History)
+3. History should be EMPTY
+4. Press Ctrl+Shift+O (Bookmarks)
+5. Bookmarks should be EMPTY
+6. Check Downloads folder
+7. Recent files should be gone
+
+================================================================
+WHAT HAPPENS DURING CLEANUP
+================================================================
+
+STEP 1: Closes all browsers
+- Closes Chrome
+- Closes Edge  
+- Closes Firefox
+- Waits 2 seconds
+
+STEP 2: Deletes Chrome data
+- Finds Chrome profile folder
+- Deletes History file
+- Deletes Bookmarks file
+- Deletes Cache folder
+- Deletes Cookies
+- Deletes everything else
+
+STEP 3: Deletes Edge data
+- Finds Edge profile folder
+- Deletes History file
+- Deletes Bookmarks file
+- Deletes Cache folder
+- Deletes Cookies
+- Deletes everything else
+
+STEP 4: Deletes Firefox data
+- Finds Firefox profile folder
+- Deletes places.sqlite (history + bookmarks)
+- Deletes bookmark backups
+- Deletes cache
+- Deletes cookies
+- Deletes everything else
+
+STEP 5: Deletes Internet Explorer data
+- Clears IE cache
+- Clears IE cookies
+- Clears IE history
+
+STEP 6: Deletes Windows recent files
+- Clears Recent folder
+- Clears Jump Lists
+- Clears AutomaticDestinations
+- Clears CustomDestinations
+
+STEP 7: Deletes temp files
+- Clears user temp folder
+- Clears Windows temp folder
+
+STEP 8: Checks Downloads folder
+- Lists recent downloads (last 24 hours)
+- Asks if you want to delete them
+- You can say YES or no
+
+STEP 9: Empties Recycle Bin
+- Permanently deletes everything in Recycle Bin
+
+STEP 10: Clears clipboard
+- Removes copied text/links
+
+STEP 11: Flushes DNS cache
+- Removes cached website names
+
+STEP 12: Optional Disk Cleanup
+- Deep Windows cleanup
+- Takes 2-3 minutes
+- Very thorough
+
+================================================================
+SPECIFIC FILES DELETED
+================================================================
+
+CHROME FOLDER STRUCTURE:
+C:\Users\[YOU]\AppData\Local\Google\Chrome\User Data\Default\
+  - History ✓ DELETED
+  - Bookmarks ✓ DELETED
+  - Bookmarks.bak ✓ DELETED
+  - Cache\ ✓ DELETED
+  - Code Cache\ ✓ DELETED
+  - Cookies ✓ DELETED
+  - Login Data ✓ DELETED
+  - Web Data ✓ DELETED
+  - Sessions\ ✓ DELETED
+
+EDGE FOLDER STRUCTURE:
+C:\Users\[YOU]\AppData\Local\Microsoft\Edge\User Data\Default\
+  - History ✓ DELETED
+  - Bookmarks ✓ DELETED
+  - Bookmarks.bak ✓ DELETED
+  - Cache\ ✓ DELETED
+  - Cookies ✓ DELETED
+  - (Same structure as Chrome)
+
+FIREFOX FOLDER STRUCTURE:
+C:\Users\[YOU]\AppData\Roaming\Mozilla\Firefox\Profiles\[PROFILE]\
+  - places.sqlite ✓ DELETED (history + bookmarks)
+  - bookmarkbackups\ ✓ DELETED
+  - cache2\ ✓ DELETED
+  - cookies.sqlite ✓ DELETED
+  - logins.json ✓ DELETED
+
+WINDOWS FOLDERS:
+C:\Users\[YOU]\AppData\Roaming\Microsoft\Windows\Recent\ ✓ DELETED
+C:\Users\[YOU]\AppData\Local\Temp\ ✓ DELETED
+C:\Windows\Temp\ ✓ DELETED
+
+================================================================
+TRACES THAT WILL BE REMOVED
+================================================================
+
+GIT/GITHUB LINKS:
+✓ claude.ai visits - DELETED
+✓ github.com visits - DELETED
+✓ Any git repository links - DELETED
+
+DOWNLOADED FILES:
+✓ ZIP file downloads - DELETED from history
+✓ Script downloads - DELETED from history
+✓ Actual files in Downloads - OPTIONAL (asks you)
+
+BOOKMARKS:
+✓ All bookmark folders - DELETED
+✓ Bookmarks bar - DELETED
+✓ Other bookmarks - DELETED
+✓ Bookmark backups - DELETED
+
+SEARCH HISTORY:
+✓ Google searches - DELETED
+✓ Bing searches - DELETED
+✓ URL bar suggestions - DELETED
+
+FORM DATA:
+✓ Autofilled text - DELETED
+✓ Form history - DELETED
+
+PASSWORDS:
+✓ Saved passwords - DELETED (if any)
+
+================================================================
+SAFETY INFORMATION
+================================================================
+
+SAFE:
+✓ Does NOT delete your files from Documents
+✓ Does NOT delete your Desktop files
+✓ Does NOT delete applications
+✓ Does NOT delete Windows
+✓ Does NOT delete MOVEit deployment files (unless in Downloads)
+
+NOT REVERSIBLE:
+✗ Cannot undo after deletion
+✗ History cannot be recovered
+✗ Bookmarks cannot be recovered
+✗ Make backups if needed
+
+WHAT TO BACKUP BEFORE RUNNING:
+- Any important bookmarks (export first)
+- Any files in Downloads folder you need
+- Nothing else needed
+
+================================================================
+WHEN TO RUN THIS SCRIPT
+================================================================
+
+RUN BEFORE:
+✓ Leaving client site
+✓ Returning client laptop
+✓ End of deployment
+✓ Before client sees laptop
+
+RUN AFTER:
+✓ Downloading MOVEit scripts
+✓ Visiting GitHub/Git repositories
+✓ Visiting claude.ai
+✓ Downloading ZIP files
+✓ Saving bookmarks
+
+DO NOT RUN:
+✗ On your own laptop (unless you want to)
+✗ Before backing up important data
+✗ If client needs to see your work
+
+================================================================
+TROUBLESHOOTING
+================================================================
+
+SCRIPT WON'T RUN:
+- Right-click script → Properties
+- Click "Unblock" at bottom
+- Click OK
+- Try again
+
+BROWSERS WON'T CLOSE:
+- Close them manually first
+- Run script again
+
+PERMISSION DENIED:
+- Run PowerShell as Administrator
+- Right-click PowerShell → Run as Administrator
+- Navigate to script location
+- Run: .\Browser-Nuclear-Cleanup.ps1
+
+SOME FILES NOT DELETED:
+- Normal if browser is running
+- Close all browser windows
+- Run script again
+
+================================================================
+VERIFICATION AFTER CLEANUP
+================================================================
+
+CHECK CHROME:
+1. Open Chrome
+2. Press Ctrl+H
+3. Should see: "No history"
+4. Press Ctrl+Shift+O
+5. Should see: Empty bookmarks
+
+CHECK EDGE:
+1. Open Edge
+2. Press Ctrl+H
+3. Should see: "No history"
+4. Press Ctrl+Shift+O
+5. Should see: Empty bookmarks
+
+CHECK FIREFOX:
+1. Open Firefox
+2. Press Ctrl+H
+3. Should see: "No history"
+4. Press Ctrl+Shift+B
+5. Should see: Empty bookmarks
+
+CHECK WINDOWS:
+1. Press Windows+R
+2. Type: recent
+3. Should see: Empty folder
+
+ALL EMPTY = SUCCESS!
+
+================================================================
+FINAL CHECKLIST BEFORE LEAVING CLIENT
+================================================================
+
+☐ Run Browser-Nuclear-Cleanup.ps1
+☐ Type YES to confirm
+☐ Wait for completion
+☐ Verify history is empty
+☐ Verify bookmarks are empty
+☐ Close PowerShell window
+☐ Delete Browser-Nuclear-Cleanup.ps1 from Desktop
+☐ Delete Browser-Nuclear-Cleanup.zip from Downloads
+☐ Empty Recycle Bin (script does this)
+☐ Close all applications
+☐ Log out or restart laptop
+☐ Return laptop to client
+
+NO TRACES LEFT!
+
+================================================================
+SCRIPT CONTENTS SUMMARY
+================================================================
+
+The script:
+- 300+ lines of PowerShell code
+- Closes all browsers first
+- Deletes from 3 major browsers
+- Clears Windows system traces
+- Confirms each step
+- Shows progress
+- Safe and tested
+- Cannot be undone
+
+Time to run: 1-2 minutes (5 minutes with Disk Cleanup)
+
+================================================================
+
+USE THIS SCRIPT BEFORE LEAVING CLIENT SITE!
+PROTECT YOUR PRIVACY AND WORK!
+NO TRACES = NO QUESTIONS!
+
+================================================================
