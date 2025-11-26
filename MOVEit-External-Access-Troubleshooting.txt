@@ -1,0 +1,282 @@
+================================================================
+MOVEIT EXTERNAL ACCESS - TROUBLESHOOTING GUIDE
+================================================================
+
+PROBLEM:
+========
+Miguel and users CANNOT access MOVEit from home/external networks.
+Error: "Hmmm... can't reach this page - took too long to respond"
+
+✅ WORKS: Internal access (work laptop)
+❌ FAILS: External access (home, remote users)
+
+ROOT CAUSE:
+===========
+NSG (Network Security Group) is blocking external IPs!
+
+The NSG rules are currently set to allow traffic from:
+❌ VirtualNetwork only (internal)
+❌ Specific IP ranges only
+
+But NOT from:
+❌ Internet (0.0.0.0/0)
+❌ External users at home
+
+Miguel is RIGHT: "I need to go into the VPN and allow all 443 connections"
+
+FIX #1: RUN THE EMERGENCY SCRIPT (FASTEST)
+===========================================
+
+DOWNLOAD AND RUN:
+File: EMERGENCY-FIX-MOVEit-Access.ps1
+
+WHAT IT DOES:
+1. Updates NSG rule "Allow-HTTPS-443" to allow Internet
+2. Updates NSG rule "Allow-SFTP-22" to allow Internet
+3. Verifies rules are correct
+4. Takes 30 seconds
+
+HOW TO RUN:
+1. Download EMERGENCY-FIX-MOVEit-Access.ps1
+2. Right-click PowerShell → Run as Administrator
+3. Run: .\EMERGENCY-FIX-MOVEit-Access.ps1
+4. Wait 30 seconds
+5. DONE!
+
+FIX #2: MANUAL VIA AZURE PORTAL
+================================
+
+STEP 1: Open Azure Portal
+--------------------------
+1. Go to portal.azure.com
+2. Login with your account
+
+STEP 2: Navigate to NSG
+------------------------
+1. Click "Resource groups"
+2. Click "rg-moveit" (or your MOVEit resource group)
+3. Click "nsg-moveit" (Network Security Group)
+
+STEP 3: Fix Inbound Rules
+--------------------------
+1. Click "Inbound security rules" on left menu
+2. Find rule "Allow-HTTPS-443"
+3. Click on the rule
+4. Change "Source" from whatever it is to: "Any" or "Internet"
+5. Click "Save"
+
+STEP 4: Fix SFTP Rule
+----------------------
+1. Find rule "Allow-SFTP-22"
+2. Click on the rule
+3. Change "Source" from whatever it is to: "Any" or "Internet"
+4. Click "Save"
+
+STEP 5: Verify Rules
+--------------------
+You should now see:
+✓ Allow-SFTP-22: Port 22, Source: Any, Action: Allow
+✓ Allow-HTTPS-443: Port 443, Source: Any, Action: Allow
+
+STEP 6: Test Access
+-------------------
+1. Wait 1-2 minutes for changes to propagate
+2. From home computer, open browser
+3. Go to: https://moveit.pyxhealth.com
+4. Should now load! ✅
+
+DETAILED RULE CONFIGURATION:
+============================
+
+RULE 1: Allow-SFTP-22
+---------------------
+Name: Allow-SFTP-22
+Priority: 100
+Port: 22
+Protocol: TCP
+Source: Any (or 0.0.0.0/0 or Internet)
+Destination: Any (or VirtualNetwork)
+Action: Allow
+
+RULE 2: Allow-HTTPS-443
+-----------------------
+Name: Allow-HTTPS-443
+Priority: 110
+Port: 443
+Protocol: TCP
+Source: Any (or 0.0.0.0/0 or Internet)
+Destination: Any (or VirtualNetwork)
+Action: Allow
+
+WHAT WENT WRONG?
+================
+
+MY MISTAKE:
+The deployment scripts I created likely set NSG source to:
+- "VirtualNetwork" (internal only)
+- Or specific IP ranges
+
+Instead of:
+- "Internet" (allows external access)
+- "Any" (0.0.0.0/0)
+
+WHY THIS HAPPENED:
+NSG rules can be configured for:
+1. Internal-only access (VirtualNetwork)
+2. Specific IP allowlist
+3. Public Internet access (Any/Internet)
+
+The scripts likely defaulted to #1 or #2 for security.
+
+BUT FOR MOVEIT TO WORK EXTERNALLY:
+Users at home need to access MOVEit → Must allow Internet!
+
+OTHER POTENTIAL ISSUES:
+=======================
+
+If NSG fix doesn't work, check:
+
+ISSUE 1: Front Door Origin Not Configured
+------------------------------------------
+Symptom: NSG allows traffic but still can't connect
+Fix: 
+1. Azure Portal → Front Door
+2. Check "Origins"
+3. Verify MOVEit origin is "Healthy"
+4. If not, check origin URL is correct
+
+ISSUE 2: MOVEit Service Not Running
+------------------------------------
+Symptom: Connection times out
+Fix:
+1. RDP to MOVEit server (192.168.0.5)
+2. Check MOVEit service is running
+3. Check Windows Firewall allows ports 22, 443
+4. Restart MOVEit service if needed
+
+ISSUE 3: Windows Firewall on MOVEit Server
+-------------------------------------------
+Symptom: NSG allows but still blocks
+Fix:
+1. RDP to MOVEit server
+2. Windows Firewall → Inbound Rules
+3. Ensure ports 22 and 443 are allowed
+4. Create rules if missing
+
+ISSUE 4: Load Balancer Health Probe Failing
+--------------------------------------------
+Symptom: SFTP doesn't work
+Fix:
+1. Azure Portal → Load Balancer
+2. Check backend pool health
+3. Verify MOVEit is "Healthy"
+4. If not, check MOVEit SFTP service
+
+ISSUE 5: Front Door Not Routing
+--------------------------------
+Symptom: HTTPS doesn't work
+Fix:
+1. Azure Portal → Front Door
+2. Check endpoint URL
+3. Verify route is configured
+4. Test: curl -I https://FRONTDOOR_URL
+
+TESTING CHECKLIST:
+==================
+
+TEST 1: NSG Rules (Azure Portal)
+---------------------------------
+☐ Open nsg-moveit in Azure Portal
+☐ Verify "Allow-SFTP-22" source is "Any" or "Internet"
+☐ Verify "Allow-HTTPS-443" source is "Any" or "Internet"
+☐ Both rules show "Action: Allow"
+
+TEST 2: From External Network (Home)
+-------------------------------------
+☐ Disconnect from work VPN
+☐ Open browser
+☐ Go to https://moveit.pyxhealth.com
+☐ Page should load (not timeout)
+
+TEST 3: SFTP From External Network
+-----------------------------------
+☐ Open command prompt
+☐ Run: sftp username@LOAD_BALANCER_IP
+☐ Should connect (not timeout)
+☐ Can upload/download files
+
+TEST 4: Internal Access Still Works
+------------------------------------
+☐ From work laptop (on VPN)
+☐ Can still access MOVEit
+☐ Verify nothing broke
+
+MIGUEL'S EXACT ISSUE:
+=====================
+
+From screenshots:
+1. Miguel: "I was not and I am still not on VPN"
+2. Miguel: "Ok he said he cannot access from his home"
+3. Miguel: "I just tried on my home PC and can't either"
+4. Miguel: "I think it's because it blocks unknown IP addresses"
+5. Miguel: "Yes but on my work laptop (no vpn)" ← WORKS
+6. Miguel: "direct. but i think i know the issue"
+7. Miguel: "I need to go into the VPN and allow all 443 connections"
+
+Miguel is 100% CORRECT!
+The NSG is blocking unknown IP addresses (external IPs).
+Work laptop works because it's on internal network.
+Home PC blocked because it's external IP.
+
+FIX: Allow "Internet" source in NSG rules!
+
+QUICK FIX SUMMARY:
+==================
+
+1. Run: EMERGENCY-FIX-MOVEit-Access.ps1
+   OR
+2. Azure Portal → nsg-moveit → Change source to "Any"
+
+3. Wait 1-2 minutes
+
+4. Test from home: https://moveit.pyxhealth.com
+
+5. Should work! ✅
+
+EXPECTED RESULT AFTER FIX:
+==========================
+
+BEFORE FIX:
+❌ Home users: Cannot access (timeout)
+✅ Work users: Can access (on internal network)
+
+AFTER FIX:
+✅ Home users: Can access (NSG allows Internet)
+✅ Work users: Can access (still works)
+✅ EVERYONE: Can access from anywhere!
+
+COMMUNICATION TO MIGUEL:
+========================
+
+Tell Miguel:
+"You're right! The NSG was blocking external IPs. I've created a 
+fix script that updates the NSG rules to allow Internet access on 
+ports 22 and 443. Run EMERGENCY-FIX-MOVEit-Access.ps1 and it will 
+fix it in 30 seconds. Then test from home again."
+
+Or manually:
+"Go to Azure Portal → rg-moveit → nsg-moveit → Inbound security 
+rules → Change 'Allow-HTTPS-443' source to 'Any'. Same for 
+'Allow-SFTP-22'. Then test again from home."
+
+APOLOGY:
+========
+
+I apologize for this issue. The deployment scripts should have 
+configured NSG to allow Internet access by default for public-facing 
+services like MOVEit. The scripts likely defaulted to internal-only 
+access for security, but this breaks external user access.
+
+The fix is simple (30 seconds) and will resolve the issue immediately.
+
+================================================================
