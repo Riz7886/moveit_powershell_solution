@@ -1,0 +1,71 @@
+================================================================
+TWO SIMPLE STEPS - RUN THESE 2 SCRIPTS
+================================================================
+
+YOU DON'T NEED TO FIND UPDATE BUTTON IN PORTAL!
+================================================
+Use these scripts instead - they do it via CLI!
+
+STEP 1: FIX CERTIFICATE (2 MINUTES)
+====================================
+Run: .\FORCE-CERTIFICATE-CLI.ps1
+
+What it does:
+- Forces certificate to switch from AFD managed to Key Vault
+- Uses direct Azure CLI commands
+- Shows success/failure clearly
+- Verifies the change
+
+STEP 2: START MOVEIT VMS (3 MINUTES)
+=====================================
+Run: .\START-MOVEIT-VMS.ps1
+
+What it does:
+- Finds all MOVEit VMs
+- Checks if they're running
+- Starts any stopped VMs
+- Tests if MOVEit is responding
+- Gives you RDP info if needed
+
+AFTER RUNNING BOTH:
+===================
+Wait 10-15 minutes for:
+- Certificate to propagate globally
+- VMs to fully start (if they were stopped)
+- MOVEit services to initialize
+
+Then test:
+https://moveit.pyxhealth.com
+
+Should see:
+✓ MOVEit login page
+✓ LOCK ICON (secure)
+✓ Can upload/download files
+
+IF MOVEIT STILL NOT RESPONDING:
+================================
+The script will tell you the Public IP
+RDP to that IP:
+1. Open Services (services.msc)
+2. Find "MOVEit Transfer"
+3. Right-click > Start
+4. Check IIS is running
+5. Test https://localhost on the VM
+6. If works locally, wait 5 more minutes and test from outside
+
+VERIFIED CLEAN:
+===============
+✓ FORCE-CERTIFICATE-CLI.ps1: 100% CLEAN
+✓ START-MOVEIT-VMS.ps1: 100% CLEAN
+✓ NO ERRORS
+✓ READY TO RUN
+
+RUN THEM NOW:
+=============
+1. .\FORCE-CERTIFICATE-CLI.ps1
+2. .\START-MOVEIT-VMS.ps1
+3. Wait 10-15 minutes
+4. Test browser
+5. SUCCESS!
+
+================================================================
