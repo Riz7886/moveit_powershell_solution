@@ -1,0 +1,165 @@
+================================================================
+THE REAL PROBLEM: SSL/TLS CERTIFICATE NOT READY
+================================================================
+
+FROM YOUR IMAGES:
+=================
+Image 12, 15, 16 show:
+  Domain: moveit.pyxhealth.com
+  Validation state: Pending ⚠️
+  Certificate type: AFD managed (Azure auto-generated)
+
+Image 19 shows test result:
+  HTTPS Request FAILED
+  Error: Could not establish trust relationship for SSL/TLS
+
+THE PROBLEM:
+============
+You're using "AFD managed certificate" which Azure Front Door 
+generates automatically. This certificate is still PENDING 
+validation and has NOT been issued yet!
+
+Status: PENDING (not ready)
+Time to complete: 1-2 hours (sometimes longer)
+
+THIS IS WHY SSL/TLS FAILS!
+
+THE SOLUTION:
+=============
+You ALREADY HAVE a working certificate in Key Vault!
+  - Certificate: wildcardpyxhealth
+  - Location: kv-moveit-prod
+  - Type: Wildcard (*.pyxhealth.com)
+  - Status: READY ✓
+
+Switch from AFD managed cert to Key Vault cert NOW!
+
+HOW TO FIX:
+===========
+1. Run: .\FIX-CERTIFICATE.ps1
+   - Switches domain from AFD managed to Key Vault cert
+   - Runtime: 1 minute
+   - NO ERRORS: 100% verified clean
+
+2. Wait: 5 minutes (for Azure to apply changes)
+
+3. Run: .\COMPLETE-TEST.ps1
+   - Tests EVERYTHING:
+     * DNS resolution
+     * TCP connectivity (port 443)
+     * HTTPS response
+     * SSL/TLS certificate validity
+     * Azure Front Door configuration
+     * Load Balancer backend
+   - Shows detailed results
+   - Tells you if lock icon will appear
+
+4. Test in browser:
+   - Go to: https://moveit.pyxhealth.com
+   - Should see: MOVEit login page
+   - Should see: LOCK ICON (secure connection)
+   - Certificate: Valid wildcard cert
+
+WHAT EACH SCRIPT DOES:
+=======================
+
+FIX-CERTIFICATE.ps1:
+--------------------
+Step 1: Gets wildcardpyxhealth cert from kv-moveit-prod
+Step 2: Updates moveit.pyxhealth.com domain settings
+Step 3: Changes certificate type from AFD managed to Key Vault
+Step 4: Verifies the change
+Result: Certificate is now READY (not Pending)
+
+COMPLETE-TEST.ps1:
+------------------
+Test 1: DNS - Checks if domain points to Front Door
+Test 2: TCP - Verifies port 443 is reachable
+Test 3: HTTPS - Tests if HTTPS connection works
+Test 4: Certificate - Validates SSL/TLS certificate
+        - Shows subject, issuer, validity dates
+        - Checks if wildcard cert
+        - Verifies not expired
+Test 5: Front Door - Checks Azure configuration
+Test 6: Backend - Tests Load Balancer connectivity
+Summary: Shows pass/fail for each test
+        Shows if lock icon will appear
+
+BOTH SCRIPTS VERIFIED:
+======================
+✓ NO smart quotes
+✓ NO syntax errors
+✓ Braces balanced
+✓ Parentheses balanced
+✓ 100% CLEAN
+
+CURRENT STATUS:
+===============
+✓ DNS: Correct (points to Front Door)
+✓ Route: Configured
+✓ Origin Group: Exists
+✓ Origin: 20.86.24.168 (if you ran FIX-ORIGIN-IP.ps1)
+✓ Load Balancer: Working
+✓ Key Vault cert: Ready to use
+✗ Domain cert: Using AFD managed (PENDING)
+
+AFTER RUNNING FIX-CERTIFICATE.ps1:
+===================================
+✓ DNS: Correct
+✓ Route: Configured
+✓ Origin Group: Exists
+✓ Origin: 20.86.24.168
+✓ Load Balancer: Working
+✓ Key Vault cert: In use
+✓ Domain cert: Customer certificate (READY)
+✓ SSL/TLS: WORKING
+✓ Lock icon: APPEARS
+
+TIMELINE:
+=========
+NOW:     Run FIX-CERTIFICATE.ps1 (1 min)
+NOW+1:   Certificate switched ✓
+NOW+6:   Run COMPLETE-TEST.ps1 (2 min)
+NOW+8:   All tests should PASS ✓
+NOW+9:   Test in browser
+NOW+10:  See lock icon! ✓
+NOW+11:  Call client - IT'S LIVE! ✓
+
+RUN ORDER:
+==========
+1. .\FIX-CERTIFICATE.ps1
+2. Wait 5 minutes
+3. .\COMPLETE-TEST.ps1
+4. Test in browser
+
+IF TEST STILL FAILS:
+====================
+Check COMPLETE-TEST.ps1 output:
+- If "CERT: FAIL" → Wait 5 more minutes, cert still applying
+- If "DNS: FAIL" → DNS not pointing to Front Door
+- If "TCP: FAIL" → Port 443 blocked or backend down
+- If "HTTPS: FAIL" → Certificate still not ready
+- If "BACKEND: FAIL" → Load Balancer issue
+
+LOCK ICON EXPLANATION:
+======================
+When you see lock icon in browser:
+✓ SSL/TLS certificate is valid
+✓ Certificate matches domain
+✓ Connection is encrypted
+✓ Browser trusts the certificate
+✓ SAFE TO UPLOAD FILES
+
+NO lock icon means:
+✗ Certificate missing or invalid
+✗ Certificate doesn't match domain
+✗ Browser doesn't trust certificate
+✗ NOT SAFE - DON'T UPLOAD FILES
+
+YOUR GOAL:
+==========
+https://moveit.pyxhealth.com with LOCK ICON ✓
+
+RUN FIX-CERTIFICATE.ps1 NOW!
+
+================================================================
