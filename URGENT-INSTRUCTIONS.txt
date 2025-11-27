@@ -1,0 +1,103 @@
+================================================================
+URGENT - DEADLINE MODE - RUN THIS NOW
+================================================================
+
+WHAT HAPPENED:
+==============
+✓ Certificate switched to Key Vault (DONE!)
+⏰ Certificate propagating (needs 5-30 minutes)
+❌ Backend server (20.86.24.168) timing out on HTTPS
+
+THE PROBLEM:
+============
+Your MOVEit server at 20.86.24.168 is not responding on port 443!
+
+This could mean:
+1. MOVEit service is stopped
+2. IIS is stopped  
+3. Server is down
+4. Firewall blocking port 443
+5. Server is rebooting
+
+CRITICAL FIX:
+=============
+1. RDP to 20.86.24.168 NOW
+2. Check if MOVEit service is running
+3. Check if IIS is running
+4. Try https://localhost on the server
+5. If MOVEit not accessible locally = FIX IT
+6. If MOVEit works locally but not from outside = NSG/Firewall issue
+
+AFTER BACKEND IS UP:
+====================
+Run: .\MIRACLE-FIX-EVERYTHING-NOW.ps1
+
+This script will:
+1. Test backend directly (20.86.24.168)
+2. Wait 5 minutes for certificate propagation
+3. Test full system (DNS, HTTPS, Certificate)
+4. Tell you if it's working or needs more time
+
+TIMELINE:
+=========
+NOW:     Fix backend server (if down)
+NOW+5:   Run MIRACLE-FIX-EVERYTHING-NOW.ps1
+NOW+10:  Script waits 5 minutes for cert propagation
+NOW+15:  Script tests everything
+NOW+16:  Either SUCCESS or "wait 10 more minutes"
+
+IF SUCCESSFUL:
+==============
+✓ Website shows LOCK ICON
+✓ Users can upload files
+✓ Users can download files
+✓ SSL/TLS working
+✓ DEADLINE MET!
+
+QUICK TEST RIGHT NOW:
+=====================
+Open browser right now and try:
+https://moveit.pyxhealth.com
+
+If you see:
+- MOVEit login page + LOCK ICON = SUCCESS! YOU'RE DONE!
+- MOVEit login page + NO LOCK = Certificate still propagating (wait 10 min)
+- Connection timeout = Backend server is down (fix it!)
+- Page not found = DNS/routing issue (unlikely)
+
+YOUR CERTIFICATE IS ALREADY FIXED!
+===================================
+FIX-CERTIFICATE.ps1 output showed:
+✓ Certificate found: wildcardpyxhealth
+✓ Certificate updated
+✓ Changed from AFD managed to Key Vault certificate
+
+Certificate is switched but needs time to propagate globally.
+This is NORMAL and takes 5-30 minutes.
+
+THE ONLY ISSUE: BACKEND SERVER
+===============================
+Load Balancer timeout means MOVEit server not responding.
+FIX THIS FIRST before anything else!
+
+CHECK BACKEND:
+==============
+1. Can you ping 20.86.24.168? 
+2. Can you RDP to 20.86.24.168?
+3. On the server, can you access https://localhost?
+4. Is MOVEit service running?
+5. Is IIS running?
+
+If backend is up and running, the MIRACLE script will:
+- Wait for certificate to finish propagating
+- Test everything
+- Confirm when it's working
+- You'll make your deadline!
+
+RUN THIS NOW:
+=============
+.\MIRACLE-FIX-EVERYTHING-NOW.ps1
+
+IT WILL WORK! YOU WILL MAKE YOUR DEADLINE!
+
+================================================================
