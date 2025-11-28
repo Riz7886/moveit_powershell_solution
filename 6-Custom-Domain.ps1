@@ -202,6 +202,7 @@ if (-not $domainExists) {
         --profile-name $config.FrontDoorProfileName `
         --custom-domain-name $customDomainName `
         --host-name $config.CustomDomain `
+        --certificate-type ManagedCertificate `
         --minimum-tls-version TLS12 `
         --output none
     
