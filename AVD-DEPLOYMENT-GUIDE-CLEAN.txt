@@ -1,0 +1,683 @@
+AZURE VIRTUAL DESKTOP DEPLOYMENT GUIDE
+PYX HEALTH CORPORATION
+
+CLEAN PROFESSIONAL DOCUMENTATION - NO SPECIAL CHARACTERS
+
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+
+1. DEPLOYMENT OVERVIEW
+2. PREREQUISITES
+3. QUICK START
+4. DEPLOYMENT STEPS
+5. DATADOG INTEGRATION
+6. POST-DEPLOYMENT
+7. USER ACCESS
+8. MONITORING AND ALERTS
+9. TROUBLESHOOTING
+10. COST INFORMATION
+
+================================================================================
+1. DEPLOYMENT OVERVIEW
+================================================================================
+
+This deployment creates a complete Azure Virtual Desktop environment for PYX Health with:
+
+- 10 Windows 11 session host VMs (scalable to 100)
+- Zero Trust network security
+- FSLogix profile management
+- Azure Monitor integration
+- Optional Datadog monitoring
+- No Azure Front Door required (Microsoft provides global infrastructure)
+
+Target Environment:
+- Subscription: sub-csc-avd
+- Subscription ID: 7edfb9f6-940e-47cd-af4b-04d0b6e6020f
+- Tenant: pyxhealth.com
+- Location: East US
+
+Deployment Time: 30-40 minutes
+Monthly Cost: Approximately $155 (without Bastion)
+
+================================================================================
+2. PREREQUISITES
+================================================================================
+
+Required Software:
+- PowerShell 7.0 or higher
+- Azure PowerShell modules (Az.Accounts, Az.Resources, Az.Network, Az.Compute, Az.DesktopVirtualization, Az.Storage)
+- Administrator privileges on local machine
+
+Required Access:
+- Azure subscription access (sub-csc-avd)
+- Contributor or Owner role in subscription
+- Ability to create resources in subscription
+
+Optional:
+- Datadog API key and Application key (for monitoring integration)
+- Email address for alerts
+- Slack webhook (for notifications)
+
+Installation Commands:
+```
+Install-Module -Name Az -Scope CurrentUser -Repository PSGallery -Force
+```
+
+================================================================================
+3. QUICK START
+================================================================================
+
+Basic Deployment (10 VMs, no Bastion, Azure Monitor only):
+```
+.\Deploy-AVD-Clean.ps1
+```
+
+Deploy 20 VMs with Bastion:
+```
+.\Deploy-AVD-Clean.ps1 -SessionHostCount 20 -DeployBastion
+```
+
+Deploy with Datadog Monitoring:
+```
+.\Deploy-AVD-Clean.ps1 -DatadogAPIKey "your-api-key" -DatadogAppKey "your-app-key"
+```
+
+Deploy without Azure Monitor:
+```
+.\Deploy-AVD-Clean.ps1 -DeployMonitoring $false
+```
+
+Skip Pre-Flight Validation (not recommended):
+```
+.\Deploy-AVD-Clean.ps1 -SkipValidation
+```
+
+================================================================================
+4. DEPLOYMENT STEPS
+================================================================================
+
+STEP 1: PREPARE ENVIRONMENT
+----------------------------
+1. Open PowerShell as Administrator
+2. Navigate to script directory:
+   cd C:\Scripts
+
+3. Verify PowerShell version:
+   $PSVersionTable.PSVersion
+
+4. Verify Azure modules installed:
+   Get-Module -ListAvailable -Name Az*
+
+STEP 2: RUN DEPLOYMENT SCRIPT
+------------------------------
+1. Execute deployment script:
+   .\Deploy-AVD-Clean.ps1
+
+2. Browser window will open for Azure authentication
+3. Sign in with your Azure credentials
+4. Script will verify target subscription (sub-csc-avd)
+
+STEP 3: PRE-FLIGHT VALIDATION
+------------------------------
+Script automatically runs 8 validation tests:
+[1/8] PowerShell version check
+[2/8] Azure modules verification
+[3/8] Administrator privileges check
+[4/8] Subscription access validation
+[5/8] Compute quota check
+[6/8] Resource provider registration
+[7/8] Naming convention validation
+[8/8] Network CIDR availability
+
+STEP 4: CONFIRM DEPLOYMENT
+---------------------------
+After validation:
+1. Review deployment configuration
+2. Press Enter to confirm or Ctrl+C to cancel
+3. Script will prompt for final confirmation
+
+STEP 5: RESOURCE DEPLOYMENT (30-40 minutes)
+--------------------------------------------
+Script deploys in 4 phases:
+
+PHASE 1: Infrastructure (10 minutes)
+- Resource group
+- Virtual Network (10.100.0.0/16)
+- Network Security Group (Zero Trust rules)
+- Storage Account (FSLogix profiles)
+
+PHASE 2: AVD Control Plane (5 minutes)
+- Host Pool (Pooled, BreadthFirst)
+- Desktop Application Group
+- Workspace
+- Registration token generation
+
+PHASE 3: Session Host Deployment (20-25 minutes)
+- 10 Windows 11 VMs deployed in parallel
+- AVD agent installation
+- Join to host pool
+
+PHASE 4: Monitoring and Alerts (2 minutes)
+- Azure Monitor action groups
+- Alert rules (CPU, Memory, Disk)
+- Datadog monitors (if keys provided)
+
+STEP 6: POST-DEPLOYMENT TESTING
+--------------------------------
+Script automatically runs 10 tests:
+[TEST 1/10] Host Pool availability
+[TEST 2/10] Session hosts registration
+[TEST 3/10] Application Group configuration
+[TEST 4/10] Workspace configuration
+[TEST 5/10] Virtual Network validation
+[TEST 6/10] Network Security Group (Zero Trust)
+[TEST 7/10] Storage Account (FSLogix)
+[TEST 8/10] VM security (Trusted Launch)
+[TEST 9/10] No Public IPs verification
+[TEST 10/10] User connectivity test
+
+STEP 7: DEPLOYMENT SUMMARY
+---------------------------
+Script generates deployment summary document with:
+- All deployed resources
+- Configuration details
+- Validation results
+- Test results
+- Next steps
+- Complete deployment log
+
+================================================================================
+5. DATADOG INTEGRATION
+================================================================================
+
+OPTION 1: Deploy Datadog During AVD Deployment
+-----------------------------------------------
+Include Datadog keys in initial deployment:
+```
+.\Deploy-AVD-Clean.ps1 -DatadogAPIKey "abc123" -DatadogAppKey "xyz789"
+```
+
+This automatically creates 10 Datadog monitors.
+
+OPTION 2: Deploy Datadog After AVD Deployment
+----------------------------------------------
+Run separate Datadog script after AVD is deployed:
+```
+.\Deploy-AVD-Datadog-Monitoring.ps1 -DatadogAPIKey "abc123" -DatadogAppKey "xyz789" -ResourceGroupName "rg-pyx-avd-prod-20251202-1234" -HostPoolName "hp-pyx-avd-20251202"
+```
+
+With email and Slack notifications:
+```
+.\Deploy-AVD-Datadog-Monitoring.ps1 -DatadogAPIKey "abc123" -DatadogAppKey "xyz789" -ResourceGroupName "rg-pyx-avd-prod-20251202-1234" -HostPoolName "hp-pyx-avd-20251202" -AlertEmail "admin@pyxhealth.com" -SlackChannel "@slack-avd-alerts"
+```
+
+DATADOG MONITORS CREATED (10 Total):
+-------------------------------------
+1. High CPU Usage (threshold: 85%, warning: 75%)
+2. High Memory Usage (threshold: 15% free, warning: 20% free)
+3. High Disk Usage (threshold: 85%, warning: 75%)
+4. Session Host Down (critical alert)
+5. Network Latency (threshold: 100ms, warning: 75ms)
+6. Storage Account Availability (critical if unavailable)
+7. High User Session Count (warning at 80 sessions)
+8. Failed User Connections (critical: 5, warning: 3)
+9. Agent Heartbeat Loss (critical alert)
+10. Resource Group Changes (critical if more than 5 changes in 10 minutes)
+
+DATADOG REGIONS:
+----------------
+- us1: US East (default for most)
+- us3: US West
+- us5: US Central
+- eu: Europe
+- ap1: Asia Pacific
+
+Specify region:
+```
+.\Deploy-AVD-Datadog-Monitoring.ps1 -DatadogAPIKey "abc123" -DatadogAppKey "xyz789" -ResourceGroupName "rg-name" -HostPoolName "hp-name" -DatadogRegion "us3"
+```
+
+================================================================================
+6. POST-DEPLOYMENT TASKS
+================================================================================
+
+IMMEDIATE TASKS (Day 1):
+------------------------
+1. Assign Users to Application Group
+   - Navigate to Azure Portal
+   - Search for "Azure Virtual Desktop"
+   - Click "Application groups"
+   - Select your app group (ag-pyx-avd-desktop-YYYYMMDD)
+   - Click "Assignments" in left menu
+   - Click "+ Add"
+   - Search for users or groups
+   - Select users
+   - Click "Select"
+
+2. Test User Connectivity
+   - Go to https://client.wvd.microsoft.com
+   - Sign in with test user (user@pyxhealth.com)
+   - Verify desktop appears
+   - Verify applications launch
+
+3. Verify Monitoring
+   - Azure Portal > Monitor > Alerts
+   - Verify alert rules exist
+   - If using Datadog: https://app.datadoghq.com/monitors/manage
+   - Verify monitors are active
+
+WITHIN FIRST WEEK:
+------------------
+1. Configure Conditional Access
+   - Azure Portal > Entra ID > Security
+   - Create Conditional Access policies
+   - Require MFA for AVD access
+   - Define trusted locations (optional)
+
+2. Configure FSLogix Settings
+   - RDP to session hosts (via Bastion if deployed)
+   - Configure FSLogix via Group Policy or Registry
+   - Set profile container path to Azure Files share
+   - Test profile roaming with user account
+
+3. Set Up Auto-Scaling (Optional)
+   - Azure Portal > AVD > Host Pools
+   - Configure scaling plan
+   - Define peak and off-peak hours
+   - Set VM start/stop schedules
+
+4. Configure Backup
+   - Azure Portal > Recovery Services Vaults
+   - Create backup policy for VMs
+   - Enable backup for session hosts
+   - Configure retention policies
+
+WITHIN FIRST MONTH:
+-------------------
+1. Performance Monitoring
+   - Review Azure Monitor metrics
+   - Review Datadog dashboards
+   - Identify usage patterns
+   - Optimize VM sizes if needed
+
+2. Cost Optimization
+   - Review monthly costs
+   - Consider Reserved Instances (save 40%)
+   - Configure auto-scaling to reduce costs
+   - Enable Azure Hybrid Benefit if applicable
+
+3. User Training
+   - Create user documentation
+   - Conduct training sessions
+   - Document common issues
+   - Create FAQ document
+
+4. Security Audit
+   - Review NSG rules
+   - Verify no public IPs on VMs
+   - Review Conditional Access policies
+   - Verify MFA enforcement
+   - Review access logs
+
+================================================================================
+7. USER ACCESS
+================================================================================
+
+WEB CLIENT (Recommended for all users):
+---------------------------------------
+URL: https://client.wvd.microsoft.com
+
+Steps:
+1. Open web browser (Chrome, Edge, Safari, Firefox)
+2. Go to https://client.wvd.microsoft.com
+3. Sign in with: username@pyxhealth.com
+4. Enter password
+5. Complete MFA if required
+6. Desktop will appear
+7. Click to launch
+
+Advantages:
+- No installation required
+- Works on any device
+- Always up-to-date
+- Cross-platform compatible
+
+WINDOWS CLIENT (Best performance):
+-----------------------------------
+Download: https://aka.ms/wvd/clients/windows
+
+Steps:
+1. Download Remote Desktop client
+2. Install on Windows PC
+3. Launch application
+4. Click "Subscribe"
+5. Sign in with: username@pyxhealth.com
+6. Desktop will appear in list
+7. Double-click to launch
+
+Advantages:
+- Best performance
+- Multiple monitor support
+- Local resource redirection (printers, USB)
+- Full-screen mode
+
+MACOS CLIENT:
+-------------
+Download: https://aka.ms/wvd/clients/mac
+
+Steps:
+1. Download from Microsoft or Mac App Store
+2. Install on macOS
+3. Launch application
+4. Add workspace
+5. Sign in with: username@pyxhealth.com
+6. Desktop will appear
+7. Click to launch
+
+MOBILE CLIENTS:
+---------------
+iOS: App Store > "Azure Virtual Desktop"
+Android: Play Store > "Azure Virtual Desktop"
+
+Steps:
+1. Download app from store
+2. Launch app
+3. Add connection
+4. Sign in with: username@pyxhealth.com
+5. Desktop will appear
+6. Tap to launch
+
+================================================================================
+8. MONITORING AND ALERTS
+================================================================================
+
+AZURE MONITOR (Deployed by Default):
+------------------------------------
+Access: Azure Portal > Monitor
+
+Configured Alerts:
+- High CPU Usage (threshold: 85%)
+- High Memory Usage (threshold: 85%)
+- High Disk Usage (threshold: 85%)
+- VM availability (critical if down)
+
+Action Group:
+- Name: ag-avd-alerts
+- Email: avd-admin@pyxhealth.com
+
+Alert Rules:
+- Evaluation frequency: 1 minute
+- Window size: 5 minutes
+- Severity: 2 (Warning) or 1 (Error)
+
+View Alerts:
+Azure Portal > Monitor > Alerts > Alert Rules
+
+DATADOG MONITORING (Optional):
+-------------------------------
+Access: https://app.datadoghq.com
+
+Dashboard URL:
+https://app.datadoghq.com/dashboard/avd-overview
+
+Configured Monitors (10 total):
+1. CPU usage alerts
+2. Memory usage alerts
+3. Disk space alerts
+4. Session host availability
+5. Network performance
+6. Storage availability
+7. User session count
+8. Failed connections
+9. Agent heartbeat
+10. Resource changes
+
+Notification Channels:
+- Email alerts
+- Slack integration (if configured)
+- PagerDuty integration (optional)
+
+View Monitors:
+https://app.datadoghq.com/monitors/manage
+
+CUSTOM ALERTS:
+--------------
+To add custom alerts in Azure Monitor:
+1. Azure Portal > Monitor > Alerts
+2. Click "+ New alert rule"
+3. Select resource (VM, Host Pool, etc.)
+4. Configure condition
+5. Configure action group
+6. Review and create
+
+To add custom monitors in Datadog:
+1. Go to https://app.datadoghq.com
+2. Click "Monitors" > "New Monitor"
+3. Select monitor type
+4. Configure query and thresholds
+5. Configure notifications
+6. Save monitor
+
+================================================================================
+9. TROUBLESHOOTING
+================================================================================
+
+ISSUE: Script won't run
+ERROR: "cannot be loaded because running scripts is disabled"
+SOLUTION:
+```
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+ISSUE: Not running as administrator
+ERROR: "Script requires administrator privileges"
+SOLUTION:
+1. Close PowerShell
+2. Right-click PowerShell
+3. Select "Run as Administrator"
+4. Run script again
+
+ISSUE: Can't find subscription
+ERROR: "Cannot access subscription"
+SOLUTION:
+1. Verify you're signed in to correct account
+2. Run: Get-AzSubscription
+3. Verify sub-csc-avd is listed
+4. Contact Azure admin if not listed
+
+ISSUE: Session hosts not available
+STATUS: VMs deployed but not showing as "Available"
+SOLUTION:
+1. Wait 15-30 minutes (normal for hosts to join)
+2. Check VM status in Azure Portal
+3. Verify AVD agent extension installed
+4. Check VM logs for errors
+5. Verify registration token hasn't expired
+
+ISSUE: Users can't connect
+PROBLEM: Users assigned but can't see desktop
+SOLUTION:
+1. Verify user assigned to Application Group
+2. Check Conditional Access policies
+3. Verify user has MFA set up
+4. Test with web client: https://client.wvd.microsoft.com
+5. Check Azure AD sign-in logs for errors
+6. Verify host pool has available hosts
+
+ISSUE: Profiles don't roam
+PROBLEM: User settings and files don't persist
+SOLUTION:
+1. Check Storage Account access
+2. Verify FSLogix configuration on VMs
+3. Check file share permissions
+4. Verify network connectivity to storage
+5. Check FSLogix logs on VMs
+6. Verify storage account key hasn't changed
+
+ISSUE: High CPU usage
+PROBLEM: Session hosts running slow
+SOLUTION:
+1. Check number of users per VM
+2. Review resource usage in Azure Monitor
+3. Consider larger VM size
+4. Add more session hosts
+5. Configure auto-scaling
+6. Review applications consuming CPU
+
+ISSUE: Datadog monitors not working
+PROBLEM: Alerts not triggering or monitors show no data
+SOLUTION:
+1. Verify Datadog agent installed on VMs
+2. Check agent status on VMs
+3. Verify API keys are correct
+4. Check Datadog agent logs
+5. Verify network connectivity to Datadog
+6. Ensure correct Datadog region specified
+
+ISSUE: NSG blocking traffic
+PROBLEM: Legitimate traffic being blocked
+SOLUTION:
+1. Review NSG flow logs
+2. Check NSG rules priority
+3. Verify source and destination addresses
+4. Test connectivity with Test-NetConnection
+5. Temporarily allow traffic to identify issue
+6. Add specific allow rule if needed
+
+ISSUE: Deployment fails during VM creation
+ERROR: "Quota exceeded" or "VM creation failed"
+SOLUTION:
+1. Check compute quota in subscription
+2. Request quota increase if needed
+3. Try different VM size
+4. Try different region
+5. Check for resource locks
+6. Review activity log for detailed error
+
+================================================================================
+10. COST INFORMATION
+================================================================================
+
+ESTIMATED MONTHLY COSTS (10 Session Hosts):
+--------------------------------------------
+Session Hosts (10x Standard_D4s_v5):
+- Cost: $14 per VM per month
+- Total: $140 per month
+
+Storage (FSLogix profiles):
+- Azure Files Standard LRS
+- Cost: Approximately $10 per month
+
+Networking:
+- Virtual Network: Free
+- NSG: Free
+- Outbound data transfer: Approximately $5 per month
+
+Azure Monitor:
+- First 10 GB logs: Free
+- Alerts: First 1,000 free
+- Cost: Minimal (typically $0-5 per month)
+
+WITHOUT BASTION:
+- Total Monthly Cost: Approximately $155
+
+WITH BASTION (Optional):
+- Azure Bastion Basic SKU: $140 per month
+- Total Monthly Cost: Approximately $295
+
+ANNUAL COSTS:
+-------------
+Without Bastion: $1,860 per year
+With Bastion: $3,540 per year
+
+COST OPTIMIZATION STRATEGIES:
+------------------------------
+1. Reserved Instances (1-year):
+   - Save up to 40% on VM costs
+   - Example: $140/month becomes $84/month
+   - Annual savings: $672
+
+2. Azure Hybrid Benefit:
+   - Use existing Windows licenses
+   - Save up to 49% on VM costs
+   - Requires Software Assurance
+
+3. Auto-Scaling:
+   - Shut down VMs during off-hours
+   - Save 50-70% on VM costs
+   - Example: Run 16 hours/day = save $4/VM/month
+
+4. Right-Sizing:
+   - Monitor actual usage
+   - Downsize underutilized VMs
+   - Move to Standard_D2s_v5 if appropriate
+
+5. Storage Optimization:
+   - Use lifecycle management
+   - Archive old profiles
+   - Clean up orphaned disks
+
+COST COMPARISON:
+----------------
+Traditional VPN Solutions:
+- Cisco AnyConnect: $500/month (50 users)
+- Azure VPN Gateway: $140/month
+
+AVD (10 VMs for 50 users):
+- Total cost: $155/month
+- Cost per user: $3.10/month
+
+DATADOG COSTS (Optional):
+--------------------------
+Infrastructure Monitoring:
+- $15 per host per month
+- 10 VMs = $150 per month additional
+
+Log Management:
+- $0.10 per GB ingested
+- Typical usage: 10-50 GB/month = $1-5/month
+
+APM (Application Performance Monitoring):
+- $31 per host per month (if needed)
+
+COST MONITORING:
+----------------
+View costs in Azure Portal:
+1. Azure Portal > Cost Management + Billing
+2. Click "Cost analysis"
+3. Filter by resource group
+4. View costs by resource type
+5. Set up cost alerts
+
+Set Cost Alerts:
+1. Cost Management > Budgets
+2. Create budget
+3. Set amount (e.g., $200/month)
+4. Configure alert at 80% and 100%
+5. Add email notifications
+
+================================================================================
+ADDITIONAL RESOURCES
+================================================================================
+
+Microsoft Documentation:
+- AVD Overview: https://learn.microsoft.com/azure/virtual-desktop/
+- FSLogix: https://learn.microsoft.com/fslogix/
+- Azure Monitor: https://learn.microsoft.com/azure/azure-monitor/
+
+Azure Architecture Center:
+- AVD Best Practices: https://learn.microsoft.com/azure/architecture/example-scenario/wvd/windows-virtual-desktop
+
+Datadog Documentation:
+- Azure Integration: https://docs.datadoghq.com/integrations/azure/
+- Monitoring Best Practices: https://docs.datadoghq.com/monitors/
+
+Support Contacts:
+- Azure Support: https://portal.azure.com (click "Help + support")
+- Datadog Support: https://app.datadoghq.com/help
+- PYX Health IT: avd-admin@pyxhealth.com
+
+================================================================================
+END OF DOCUMENTATION
+================================================================================
