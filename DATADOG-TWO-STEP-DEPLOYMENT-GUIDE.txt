@@ -1,0 +1,439 @@
+DATADOG COMPLETE DEPLOYMENT GUIDE
+PYX HEALTH CORPORATION
+
+CLEAN SCRIPT - TWO STEP PROCESS - NO ERRORS
+
+================================================================================
+WHAT THIS DOES
+================================================================================
+
+STEP 1: Installs Datadog agent on ALL machines (servers, desktops, laptops)
+STEP 2: Creates 25 monitors for 24/7 IT alerts
+
+Works on: Windows Servers, Windows Desktops, Windows Laptops
+Monitors: Everything running on those machines
+Alerts: 24 hours a day, 7 days a week to IT department
+
+================================================================================
+TWO-STEP DEPLOYMENT
+================================================================================
+
+STEP 1: INSTALL DATADOG AGENT
+Run this command on EVERY machine you want to monitor:
+
+PowerShell command:
+.\Deploy-Datadog-Complete.ps1 -Mode InstallAgent
+
+What it does:
+- Downloads Datadog agent
+- Installs agent on current machine
+- Starts agent service
+- Agent begins sending data to Datadog
+
+Time: 2-3 minutes per machine
+Run on: Every server, desktop, laptop you want monitored
+
+STEP 2: CREATE MONITORS
+Run this command ONCE from any machine AFTER agents are installed:
+
+PowerShell command:
+.\Deploy-Datadog-Complete.ps1 -Mode CreateMonitors
+
+What it does:
+- Connects to Datadog web platform
+- Creates 25 comprehensive monitors
+- Configures 24/7 alerts to IT department
+- Monitors ALL machines with agents installed
+
+Time: 5-10 minutes
+Run: Only once, from any machine with Azure access
+
+================================================================================
+DETAILED STEP 1: INSTALL AGENTS
+================================================================================
+
+Install agent on EACH machine:
+
+1. Copy Deploy-Datadog-Complete.ps1 to the machine
+2. Open PowerShell as Administrator
+3. Run: .\Deploy-Datadog-Complete.ps1 -Mode InstallAgent
+4. Wait 2-3 minutes for installation
+5. Agent will start automatically
+6. Repeat for all machines
+
+Machines to install on:
+- ALL Windows servers
+- ALL Windows desktops
+- ALL Windows laptops
+- ANY machine you want monitored
+
+Agent monitors:
+- CPU usage
+- Memory usage
+- Disk usage
+- Network traffic
+- Application performance
+- Service status
+- Everything running on that machine
+
+================================================================================
+DETAILED STEP 2: CREATE MONITORS
+================================================================================
+
+Create monitors ONCE after agents installed:
+
+1. Open PowerShell as Administrator on ANY machine
+2. Run: .\Deploy-Datadog-Complete.ps1 -Mode CreateMonitors
+3. Sign in to Azure when prompted
+4. Script discovers all subscriptions
+5. Creates 25 monitors for each subscription
+6. Done - monitors are active
+
+Monitors created (25 total per subscription):
+
+COMPUTE MONITORS (5):
+1. High CPU usage
+2. High memory usage
+3. High disk usage
+4. VM stopped
+5. Agent down
+
+NETWORK MONITORS (3):
+6. High network traffic
+7. Network packet drops
+8. Load balancer unhealthy
+
+SECURITY MONITORS (4):
+9. Failed login attempts
+10. NSG rule changes
+11. RBAC changes
+12. Resource deletions
+
+APPLICATION MONITORS (3):
+13. Slow application response
+14. High application errors
+15. Application down
+
+DATABASE MONITORS (4):
+16. High SQL DTU usage
+17. High SQL storage
+18. SQL deadlocks
+19. SQL connection failures
+
+STORAGE MONITORS (2):
+20. High storage capacity
+21. Low storage availability
+
+COST AND BACKUP MONITORS (4):
+22. Daily cost spikes
+23. Backup failures
+24. SSL certificate expiring
+25. High error logs
+
+================================================================================
+WHO GETS ALERTS
+================================================================================
+
+ALL alerts go to PYX Health IT department:
+
+Email: john.pinto@pyxhealth.com
+       anthoney.schlak@pyxhealth.com
+       shaun.raj@pyxhealth.com
+
+PagerDuty: @pagerduty-pyxhealth-oncall
+
+Slack: Environment-specific channels
+- Production: @slack-alerts-prod
+- Staging: @slack-alerts-stg
+- QA: @slack-alerts-qa
+- Development: @slack-alerts-dev
+
+Alerts sent: 24 hours a day, 7 days a week
+Response: Immediate for critical alerts
+
+================================================================================
+EXAMPLE DEPLOYMENT
+================================================================================
+
+Company has:
+- 10 Windows servers
+- 20 Windows desktops
+- 15 Windows laptops
+- 4 Azure subscriptions
+
+STEP 1: Install agents
+Run on all 45 machines (servers, desktops, laptops):
+.\Deploy-Datadog-Complete.ps1 -Mode InstallAgent
+Time: 2-3 minutes per machine = 90-135 minutes total
+
+STEP 2: Create monitors
+Run once from any machine:
+.\Deploy-Datadog-Complete.ps1 -Mode CreateMonitors
+Time: 5-10 minutes
+
+RESULT:
+- 45 machines monitored
+- 100 monitors created (25 per subscription x 4 subscriptions)
+- 24/7 alerts active
+- IT department notified of all issues
+
+================================================================================
+WHAT GETS MONITORED
+================================================================================
+
+Agent installed on machine monitors:
+
+HARDWARE:
+- CPU usage and temperature
+- Memory usage and available RAM
+- Disk space and I/O
+- Network interface traffic and errors
+
+SERVICES:
+- Windows services status
+- Service failures and restarts
+- Service performance
+
+APPLICATIONS:
+- Application performance
+- Application errors
+- Application crashes
+- Response times
+
+LOGS:
+- Windows Event Logs
+- Application logs
+- Error logs
+- Security logs
+
+NETWORK:
+- Network connectivity
+- Bandwidth usage
+- Packet loss
+- Connection failures
+
+SECURITY:
+- Failed login attempts
+- Firewall changes
+- Permission changes
+- Security events
+
+================================================================================
+ALERT EXAMPLES
+================================================================================
+
+ALERT 1: High CPU
+Trigger: CPU above 85% for 5 minutes
+Action: Email + PagerDuty + Slack alert sent
+Message: "High CPU usage on SERVER01. Check processes."
+
+ALERT 2: Failed Logins
+Trigger: 10+ failed login attempts in 5 minutes
+Action: Email + PagerDuty + Slack alert sent
+Message: "Multiple failed logins on SERVER01. Possible attack."
+
+ALERT 3: Disk Full
+Trigger: Disk usage above 85%
+Action: Email + PagerDuty + Slack alert sent
+Message: "Disk space low on SERVER01. Clean up files."
+
+ALERT 4: Application Down
+Trigger: Application not responding
+Action: Email + PagerDuty + Slack alert sent
+Message: "Application down on SERVER01. Restart needed."
+
+ALERT 5: Resource Deleted
+Trigger: Azure resource deleted
+Action: Email + PagerDuty + Slack alert sent
+Message: "Resource deleted in subscription. Verify intentional."
+
+All alerts include:
+- Machine name
+- Issue description
+- Severity level
+- Timestamp
+- Recommended action
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+ISSUE: Script says "not administrator"
+FIX:
+1. Close PowerShell
+2. Right-click PowerShell
+3. Select "Run as Administrator"
+4. Run script again
+
+ISSUE: Agent installation fails
+FIX:
+1. Check internet connection
+2. Check firewall allows outbound 443
+3. Run as Administrator
+4. Try again
+
+ISSUE: No alerts being sent
+FIX:
+1. Verify agents installed on machines
+2. Check agents are running (Get-Service datadogagent)
+3. Verify monitors created in Datadog dashboard
+4. Check email addresses in script are correct
+
+ISSUE: Monitors not created
+FIX:
+1. Verify you have Azure access
+2. Check you ran as Administrator
+3. Verify API keys are correct
+4. Check internet connection
+
+================================================================================
+VERIFICATION
+================================================================================
+
+After STEP 1 (Install Agents):
+1. Check agent service is running:
+   Get-Service datadogagent
+   
+2. Should show: Status = Running
+
+3. Check Datadog dashboard:
+   Go to: https://app.us3.datadoghq.com
+   See: Machine appears in infrastructure list
+   Wait: 5 minutes for data to appear
+
+After STEP 2 (Create Monitors):
+1. Check Datadog monitors:
+   Go to: https://app.us3.datadoghq.com/monitors/manage
+   See: 25 monitors per subscription created
+
+2. Test alert:
+   Trigger a test alert (use high CPU)
+   Check: Email received
+   Check: PagerDuty alert created
+   Check: Slack message posted
+
+================================================================================
+MAINTENANCE
+================================================================================
+
+Agent updates:
+- Agents auto-update
+- No maintenance needed
+
+Monitor updates:
+- Run CreateMonitors mode again to update
+- Safe to run multiple times
+- Will update existing monitors
+
+Adding new machines:
+- Just run InstallAgent mode on new machine
+- Existing monitors will automatically include it
+
+Removing machines:
+- Uninstall agent: Control Panel > Programs
+- Or: msiexec /x {DATADOG-AGENT-GUID} /quiet
+
+================================================================================
+SUPPORT
+================================================================================
+
+Script issues:
+- Check deployment log file
+- Review error messages
+- Verify prerequisites
+
+Datadog issues:
+- Dashboard: https://app.us3.datadoghq.com
+- Support: https://www.datadoghq.com/support
+
+Azure issues:
+- Portal: https://portal.azure.com
+- Support: Azure help
+
+PYX Health IT:
+- Email: john.pinto@pyxhealth.com
+- Email: anthoney.schlak@pyxhealth.com
+- Email: shaun.raj@pyxhealth.com
+
+================================================================================
+QUICK REFERENCE
+================================================================================
+
+Install agent on machine:
+.\Deploy-Datadog-Complete.ps1 -Mode InstallAgent
+
+Create monitors (run once):
+.\Deploy-Datadog-Complete.ps1 -Mode CreateMonitors
+
+Check agent status:
+Get-Service datadogagent
+
+Datadog dashboard:
+https://app.us3.datadoghq.com
+
+Restart agent:
+Restart-Service datadogagent
+
+View monitors:
+https://app.us3.datadoghq.com/monitors/manage
+
+================================================================================
+DEPLOYMENT CHECKLIST
+================================================================================
+
+Before starting:
+- [ ] Have PowerShell access to all machines
+- [ ] Have Administrator rights
+- [ ] Have internet connection on all machines
+- [ ] Have Azure access for CreateMonitors step
+
+Step 1 - Install Agents:
+- [ ] Copy script to each machine
+- [ ] Run InstallAgent mode on each machine
+- [ ] Verify agent running on each machine
+- [ ] Wait 5 minutes for data to appear
+
+Step 2 - Create Monitors:
+- [ ] Run CreateMonitors mode once
+- [ ] Verify monitors created in Datadog
+- [ ] Test alerts working
+- [ ] Verify IT team receiving alerts
+
+After deployment:
+- [ ] Document which machines have agents
+- [ ] Train IT team on alert responses
+- [ ] Set up incident procedures
+- [ ] Schedule regular reviews
+
+================================================================================
+SUCCESS CRITERIA
+================================================================================
+
+Deployment successful when:
+- [ ] Agents installed on all machines
+- [ ] Agents running and reporting data
+- [ ] 25 monitors created per subscription
+- [ ] Alerts being sent to IT department
+- [ ] IT team receiving emails
+- [ ] PagerDuty alerts working
+- [ ] Slack messages posting
+- [ ] Dashboard showing all machines
+- [ ] No errors in deployment log
+
+Expected results:
+- 100% machine visibility
+- 24/7 monitoring active
+- Immediate alert on issues
+- Complete IT coverage
+
+================================================================================
+END OF DEPLOYMENT GUIDE
+================================================================================
+
+Follow these two steps and you will have complete 24/7 monitoring for ALL
+machines with alerts going to IT department immediately.
+
+STEP 1: Install agents on all machines
+STEP 2: Create monitors once
+
+DONE!

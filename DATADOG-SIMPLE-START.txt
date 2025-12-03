@@ -1,0 +1,133 @@
+DATADOG DEPLOYMENT - SIMPLE INSTRUCTIONS
+PYX HEALTH CORPORATION
+
+================================================================================
+TWO COMMANDS - THAT'S IT
+================================================================================
+
+STEP 1: RUN THIS ON EVERY MACHINE (servers, desktops, laptops)
+
+.\Deploy-Datadog-Complete.ps1 -Mode InstallAgent
+
+This installs Datadog agent on the current machine.
+Run it on EVERY machine you want monitored.
+Takes 2-3 minutes per machine.
+
+================================================================================
+
+STEP 2: RUN THIS ONCE FROM ANY MACHINE
+
+.\Deploy-Datadog-Complete.ps1 -Mode CreateMonitors
+
+This creates 25 monitors in Datadog for 24/7 IT alerts.
+Run it ONCE after agents are installed.
+Takes 5-10 minutes.
+
+================================================================================
+WHAT YOU GET
+================================================================================
+
+After running both steps:
+
+ALL MACHINES MONITORED:
+- CPU, memory, disk usage
+- Network traffic
+- Application performance
+- Service status
+- Security events
+
+25 ALERTS PER SUBSCRIPTION:
+- Compute problems (CPU, memory, disk, VM status, agent)
+- Network issues (traffic, errors, load balancers)
+- Security threats (failed logins, NSG changes, RBAC, deletions)
+- Application issues (slow response, errors, downtime)
+- Database problems (high DTU, storage, deadlocks, connections)
+- Storage issues (capacity, availability)
+- Cost spikes, backup failures, SSL expiration, error logs
+
+ALERTS SENT TO:
+- Email: IT department
+- PagerDuty: On-call team
+- Slack: Environment channels
+- 24 hours a day, 7 days a week
+
+================================================================================
+REQUIREMENTS
+================================================================================
+
+STEP 1 (InstallAgent):
+- Run as Administrator
+- Internet connection
+- Windows machine (server, desktop, or laptop)
+
+STEP 2 (CreateMonitors):
+- Run as Administrator
+- Azure access
+- Internet connection
+
+================================================================================
+EXAMPLE
+================================================================================
+
+Company has 10 servers, 20 desktops, 15 laptops:
+
+STEP 1: Install agent on all 45 machines
+Run on each: .\Deploy-Datadog-Complete.ps1 -Mode InstallAgent
+Total time: 90-135 minutes
+
+STEP 2: Create monitors once
+Run once: .\Deploy-Datadog-Complete.ps1 -Mode CreateMonitors
+Total time: 5-10 minutes
+
+RESULT: 45 machines monitored with 100 alerts active
+
+================================================================================
+VERIFICATION
+================================================================================
+
+Check agent installed:
+Get-Service datadogagent
+
+Should show: Status = Running
+
+Check monitors created:
+Go to: https://app.us3.datadoghq.com/monitors/manage
+Should see: 25 monitors per subscription
+
+Check alerts working:
+Trigger test alert (high CPU)
+Verify: Email received, PagerDuty alert, Slack message
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+ERROR: "not administrator"
+FIX: Right-click PowerShell > Run as Administrator
+
+ERROR: "installation failed"
+FIX: Check internet connection and try again
+
+ERROR: "no monitors created"
+FIX: Verify Azure access and API keys correct
+
+================================================================================
+SUPPORT
+================================================================================
+
+PYX Health IT Department:
+john.pinto@pyxhealth.com
+anthoney.schlak@pyxhealth.com
+shaun.raj@pyxhealth.com
+
+Datadog Dashboard:
+https://app.us3.datadoghq.com
+
+================================================================================
+THAT'S IT - TWO COMMANDS TOTAL
+================================================================================
+
+STEP 1: .\Deploy-Datadog-Complete.ps1 -Mode InstallAgent (on every machine)
+STEP 2: .\Deploy-Datadog-Complete.ps1 -Mode CreateMonitors (once)
+
+DONE!
