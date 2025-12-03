@@ -1,0 +1,582 @@
+DATADOG COMPLETE AUTO-DEPLOYMENT
+PYX HEALTH CORPORATION
+
+EXACTLY LIKE AVD SCRIPT - AUTO-DISCOVERS AND INSTALLS ON ALL VMS
+
+================================================================================
+YES - IT AUTO-DISCOVERS AND INSTALLS ON EVERYTHING!
+================================================================================
+
+WHAT IT DOES:
+
+1. Connects to Datadog web-based tool (https://app.us3.datadoghq.com)
+2. Shows YOU all your Azure subscriptions (like AVD script)
+3. You select which subscriptions
+4. Script AUTO-DISCOVERS ALL VMs in those subscriptions
+5. Script INSTALLS agents on ALL VMs automatically
+6. Script CREATES 25 monitors for 24/7 alerts
+7. DONE - Everything monitored automatically!
+
+================================================================================
+HOW TO RUN
+================================================================================
+
+Just run:
+.\Deploy-Datadog-Complete-Auto.ps1
+
+You will see menu with 4 options - choose what you want!
+
+================================================================================
+OPTION 1: INSTALL AGENTS ON ALL VMS
+================================================================================
+
+What happens:
+
+STEP 1: Script shows ALL your subscriptions
+
+Available subscriptions:
+
+  [1] PYX-Health-Production
+      Subscription ID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+
+  [2] PYX-Health-Staging
+      Subscription ID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+
+  [3] PYX-Health-QA
+      Subscription ID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+
+  [A] Install on ALL subscriptions
+
+=========================================================================
+
+Select subscriptions (e.g., 1,2,3 or A for all):
+
+STEP 2: You choose which subscriptions
+- Type: 1,2,3 (for specific subscriptions)
+- OR Type: A (for ALL subscriptions)
+
+STEP 3: Script AUTO-DISCOVERS ALL VMs
+
+Scanning subscription: PYX-Health-Production
+Found 10 VMs in PYX-Health-Production
+
+Scanning subscription: PYX-Health-Staging
+Found 5 VMs in PYX-Health-Staging
+
+=========================================================================
+  TOTAL VMS FOUND: 15
+=========================================================================
+
+  PYX-Health-Production: 10 VMs
+  PYX-Health-Staging: 5 VMs
+
+Ready to install Datadog agent on all VMs?
+This will take approximately 45 minutes
+
+Continue? (Y/N):
+
+STEP 4: You confirm (type Y)
+
+STEP 5: Script installs on ALL VMs automatically
+
+=========================================================================
+  INSTALLING AGENTS
+=========================================================================
+
+[1/15] Installing on: WEB-SERVER-01 (Production)... SUCCESS
+[2/15] Installing on: WEB-SERVER-02 (Production)... SUCCESS
+[3/15] Installing on: APP-SERVER-01 (Production)... SUCCESS
+[4/15] Installing on: DB-SERVER-01 (Production)... SUCCESS
+[5/15] Installing on: WEB-SERVER-03 (Staging)... SUCCESS
+...continuing for all VMs...
+
+=========================================================================
+  AGENT INSTALLATION COMPLETE
+=========================================================================
+
+  Total VMs: 15
+  Successful: 15
+  Failed: 0
+
+Agents will start reporting to Datadog within 5 minutes
+Dashboard: https://app.us3.datadoghq.com
+
+DONE! All VMs monitored!
+
+================================================================================
+OPTION 2: CREATE MONITORING ALERTS
+================================================================================
+
+What happens:
+
+STEP 1: Script shows ALL your subscriptions (same as Option 1)
+STEP 2: You select which subscriptions
+STEP 3: Script creates 25 monitors per subscription
+
+Creating 25 monitors per subscription...
+Total monitors to create: 50
+
+Subscription: PYX-Health-Production (production)
+  [1/25] High CPU... SUCCESS
+  [2/25] High Memory... SUCCESS
+  [3/25] High Disk... SUCCESS
+  ...all 25 monitors...
+
+Subscription: PYX-Health-Staging (staging)
+  [1/25] High CPU... SUCCESS
+  [2/25] High Memory... SUCCESS
+  ...all 25 monitors...
+
+=========================================================================
+  MONITOR CREATION COMPLETE
+=========================================================================
+
+  Subscriptions: 2
+  Monitors Created: 50
+  Monitors Failed: 0
+
+  Dashboard: https://app.us3.datadoghq.com/monitors/manage
+
+All monitors active - sending 24/7 alerts to IT department
+
+================================================================================
+OPTION 3: FULL DEPLOYMENT
+================================================================================
+
+What happens:
+
+STEP 1: Shows subscriptions - you select
+STEP 2: Auto-discovers ALL VMs in those subscriptions
+STEP 3: Installs agents on ALL VMs automatically
+STEP 4: Creates 25 monitors per subscription automatically
+STEP 5: DONE - Complete automated setup!
+
+This is best for first-time deployment!
+
+================================================================================
+EXACTLY LIKE AVD SCRIPT
+================================================================================
+
+AVD SCRIPT:
+1. Run script
+2. See subscription menu
+3. Select subscriptions
+4. Script auto-discovers resources
+5. Script deploys everything automatically
+6. Shows progress for each step
+7. Done!
+
+DATADOG SCRIPT:
+1. Run script
+2. See subscription menu
+3. Select subscriptions
+4. Script auto-discovers ALL VMs
+5. Script installs agents on ALL VMs automatically
+6. Shows progress for each VM
+7. Done!
+
+EXACT SAME WORKFLOW!
+
+================================================================================
+AUTO-DISCOVERY EXPLAINED
+================================================================================
+
+HOW IT DISCOVERS VMS:
+
+For each subscription you select:
+1. Script connects to that subscription
+2. Script runs: Get-AzVM
+3. Gets ALL VMs in that subscription
+4. Gets ALL resource groups automatically
+5. Lists every VM found
+
+YOU DON'T NEED TO SPECIFY ANYTHING!
+Script finds EVERYTHING automatically!
+
+Example:
+You select: PYX-Health-Production
+
+Script finds:
+- WEB-SERVER-01 (in RG-Web)
+- WEB-SERVER-02 (in RG-Web)
+- APP-SERVER-01 (in RG-App)
+- APP-SERVER-02 (in RG-App)
+- DB-SERVER-01 (in RG-Database)
+- DB-SERVER-02 (in RG-Database)
+- DC-SERVER-01 (in RG-Infrastructure)
+- JUMP-SERVER-01 (in RG-Infrastructure)
+- TEST-SERVER-01 (in RG-Test)
+- TEST-SERVER-02 (in RG-Test)
+
+Total: 10 VMs across 4 resource groups
+
+Script installs agent on ALL 10 automatically!
+
+================================================================================
+AUTO-INSTALLATION EXPLAINED
+================================================================================
+
+HOW IT INSTALLS ON EACH VM:
+
+1. Script uses Azure Run Command
+2. Connects to VM remotely
+3. Downloads Datadog agent installer
+4. Installs agent silently
+5. Starts agent service
+6. Verifies installation
+7. Moves to next VM
+
+ALL AUTOMATIC - NO MANUAL STEPS!
+
+You see:
+[1/10] Installing on: WEB-SERVER-01... SUCCESS
+[2/10] Installing on: WEB-SERVER-02... SUCCESS
+...
+
+Takes about 3 minutes per VM
+Total time = (number of VMs) x 3 minutes
+
+================================================================================
+WHAT GETS MONITORED
+================================================================================
+
+After agent installed on VM, it monitors:
+
+COMPUTE:
+- CPU usage
+- Memory usage
+- Disk space
+- Disk I/O
+
+NETWORK:
+- Network traffic
+- Bandwidth usage
+- Packet drops
+- Connection errors
+
+SERVICES:
+- Windows services
+- Service failures
+- Service restarts
+
+APPLICATIONS:
+- Application performance
+- Application errors
+- Response times
+- Crashes
+
+LOGS:
+- Windows Event Logs
+- Application logs
+- Error logs
+- Security logs
+
+SECURITY:
+- Failed login attempts
+- Security events
+- Permission changes
+
+EVERYTHING on that VM!
+
+================================================================================
+THE 25 MONITORS
+================================================================================
+
+For EACH subscription, script creates:
+
+COMPUTE ALERTS (5):
+1. High CPU (>85%)
+2. High Memory (>85%)
+3. High Disk (>85%)
+4. VM Stopped
+5. Agent Down
+
+NETWORK ALERTS (3):
+6. High Traffic (DDoS detection)
+7. Packet Drops
+8. Load Balancer Issues
+
+SECURITY ALERTS (4):
+9. Failed Logins (brute force)
+10. NSG Changes (firewall)
+11. RBAC Changes (permissions)
+12. Resource Deletions
+
+APPLICATION ALERTS (3):
+13. Slow Response (>3 seconds)
+14. High Errors (5xx)
+15. Application Down
+
+DATABASE ALERTS (4):
+16. High DTU (>85%)
+17. High Storage (>85%)
+18. Deadlocks
+19. Connection Failures
+
+STORAGE ALERTS (2):
+20. High Capacity (>450GB)
+21. Low Availability (<99%)
+
+COST/BACKUP ALERTS (4):
+22. Cost Spikes (>$1000/day)
+23. Backup Failures
+24. SSL Expiring (<30 days)
+25. High Error Logs (>50 in 5min)
+
+ALL send alerts 24/7 to IT department!
+
+================================================================================
+EXAMPLE DEPLOYMENT
+================================================================================
+
+Company: PYX Health Corporation
+
+Azure Environment:
+- 3 subscriptions
+- 30 total VMs
+  * Production: 15 VMs
+  * Staging: 10 VMs
+  * QA: 5 VMs
+
+DEPLOYMENT:
+
+Run script:
+.\Deploy-Datadog-Complete-Auto.ps1
+
+Choose: [3] Full Deployment
+
+Select subscriptions: A (all)
+
+Script auto-discovers:
+Found 15 VMs in Production
+Found 10 VMs in QA
+Found 5 VMs in Staging
+TOTAL: 30 VMs
+
+Confirm: Y
+
+Script installs agents:
+[1/30] WEB-01 (Production)... SUCCESS
+[2/30] WEB-02 (Production)... SUCCESS
+...installs on all 30 VMs...
+[30/30] TEST-05 (QA)... SUCCESS
+
+Time: 90 minutes (30 VMs x 3 min)
+
+Script creates monitors:
+Production: 25 monitors
+Staging: 25 monitors
+QA: 25 monitors
+TOTAL: 75 monitors
+
+Time: 10 minutes
+
+RESULT:
+- 30 VMs monitored
+- 75 monitors active
+- 24/7 alerts configured
+- IT department notified immediately
+- Complete visibility
+
+TOTAL TIME: 100 minutes
+MANUAL WORK: ZERO
+
+================================================================================
+ALERTS GO TO
+================================================================================
+
+ALL 75 monitors send alerts to:
+
+EMAIL (immediate):
+john.pinto@pyxhealth.com
+anthoney.schlak@pyxhealth.com
+shaun.raj@pyxhealth.com
+
+PAGERDUTY (on-call team):
+@pagerduty-pyxhealth-oncall
+
+SLACK (by environment):
+Production alerts: @slack-alerts-prod
+Staging alerts: @slack-alerts-stg
+QA alerts: @slack-alerts-qa
+Dev alerts: @slack-alerts-dev
+
+FREQUENCY:
+24 hours a day
+7 days a week
+365 days a year
+
+RESPONSE:
+Immediate alerts for critical issues
+Warnings for potential issues
+
+================================================================================
+VERIFICATION
+================================================================================
+
+After Option 1 (Install Agents):
+
+Check Datadog dashboard:
+Go to: https://app.us3.datadoghq.com
+Click: Infrastructure
+See: All 30 VMs listed
+Status: All reporting data
+
+After Option 2 (Create Monitors):
+
+Check monitors:
+Go to: https://app.us3.datadoghq.com/monitors/manage
+See: 75 monitors listed (25 per subscription)
+Status: All active
+
+Test alerts:
+Trigger: Stop a VM or cause high CPU
+Verify: Email received
+Verify: PagerDuty alert created
+Verify: Slack message posted
+
+================================================================================
+REQUIREMENTS
+================================================================================
+
+To run script:
+- Windows machine
+- PowerShell (built-in)
+- Administrator privileges
+- Internet connection
+- Azure account access
+
+Script will:
+- Install Azure PowerShell modules automatically
+- Connect to Azure
+- Connect to Datadog
+- Do everything else automatically
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+ISSUE: Script can't find VMs
+CHECK: Are VMs running in Azure?
+CHECK: Do you have access to subscriptions?
+FIX: Verify Azure access
+
+ISSUE: Installation fails on some VMs
+CHECK: Are VMs running Windows?
+CHECK: Are VMs accessible?
+FIX: Check VM status in Azure portal
+
+ISSUE: No alerts received
+CHECK: Are monitors created in Datadog?
+CHECK: Are email addresses correct?
+FIX: Verify notification settings
+
+================================================================================
+COMPARISON TO MANUAL PROCESS
+================================================================================
+
+MANUAL WAY (old):
+1. Log into each VM (30 VMs)
+2. Download agent on each VM
+3. Install agent on each VM
+4. Configure agent on each VM
+5. Create monitors manually (75 monitors)
+6. Configure alerts manually
+Time: 20-30 hours of work
+
+AUTOMATED WAY (this script):
+1. Run script
+2. Select subscriptions
+3. Wait
+Time: 100 minutes (most is waiting)
+Manual work: 5 minutes (just run script and select)
+
+SAVINGS: 25+ hours of manual work!
+
+================================================================================
+ONE COMMAND DEPLOYMENT
+================================================================================
+
+.\Deploy-Datadog-Complete-Auto.ps1
+
+Then:
+- Choose [3] Full Deployment
+- Select subscriptions (A for all)
+- Confirm (Y)
+- Wait for completion
+- DONE!
+
+Everything else is 100% AUTOMATIC!
+
+================================================================================
+WHAT MAKES THIS LIKE AVD SCRIPT
+================================================================================
+
+AVD FEATURES:
+[X] Interactive menu
+[X] Subscription selection
+[X] Auto-discovery of resources
+[X] Automated deployment
+[X] Progress indicators
+[X] Success confirmation
+[X] Error handling
+[X] Log file creation
+
+DATADOG FEATURES:
+[X] Interactive menu
+[X] Subscription selection
+[X] Auto-discovery of VMs
+[X] Automated agent installation
+[X] Progress indicators
+[X] Success confirmation
+[X] Error handling
+[X] Log file creation
+
+100% MATCH!
+
+================================================================================
+SUPPORT
+================================================================================
+
+Script issues:
+- Check log file (auto-created)
+- Review error messages
+- Verify Azure access
+
+PYX Health IT:
+john.pinto@pyxhealth.com
+anthoney.schlak@pyxhealth.com
+shaun.raj@pyxhealth.com
+
+Datadog:
+https://app.us3.datadoghq.com
+
+Azure:
+https://portal.azure.com
+
+================================================================================
+SUCCESS CHECKLIST
+================================================================================
+
+After running script:
+
+[X] All subscriptions processed
+[X] All VMs discovered
+[X] Agents installed on all VMs
+[X] All VMs reporting to Datadog
+[X] All monitors created
+[X] Test alerts working
+[X] IT team receiving alerts
+[X] 24/7 monitoring active
+
+When ALL checked = SUCCESS!
+
+================================================================================
+END OF INSTRUCTIONS
+================================================================================
+
+YES - IT AUTO-DISCOVERS ALL VMS IN ALL SUBSCRIPTIONS!
+YES - IT AUTO-INSTALLS ON EVERYTHING!
+YES - IT WORKS EXACTLY LIKE AVD SCRIPT!
+
+JUST RUN IT AND SELECT SUBSCRIPTIONS!
