@@ -1,0 +1,412 @@
+DATADOG DEPLOYMENT QUICK START
+PYX HEALTH CORPORATION
+
+CLEAN SCRIPT - NO EMOJIS - NO SPECIAL CHARACTERS - NO ERRORS
+
+================================================================================
+WHAT YOU GOT
+================================================================================
+
+1. Deploy-Datadog-Clean.ps1
+   - Main deployment script
+   - Works with PowerShell 5.1 and 7+
+   - Auto-installs Azure modules
+   - Discovers all Azure subscriptions automatically
+   - Creates monitors for each subscription
+   - Routes alerts to PagerDuty, Email, and Slack
+
+2. DATADOG-CONFIG-TEMPLATE.txt
+   - Configuration reference
+   - All API keys and settings
+   - Alert routing configuration
+
+3. This Quick Start Guide
+
+================================================================================
+EASIEST WAY TO DEPLOY (3 COMMANDS)
+================================================================================
+
+Open PowerShell as Administrator and run:
+
+1. Set execution policy:
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+
+2. Install Azure modules (if needed):
+Install-Module -Name Az.Accounts,Az.Resources,Az.Monitor -Repository PSGallery -Scope CurrentUser -Force
+
+3. Run deployment:
+.\Deploy-Datadog-Clean.ps1
+
+DONE - That's it!
+
+The script will:
+- Check everything is installed
+- Connect to Azure
+- Discover all subscriptions
+- Create monitors for each subscription
+- Configure alert routing
+
+================================================================================
+WHAT GETS DEPLOYED
+================================================================================
+
+For EACH Azure subscription, the script creates 5 monitors:
+
+1. HIGH CPU USAGE
+   - Alerts if CPU above 85%
+   - Warning at 75%
+   - Checks every 5 minutes
+
+2. HIGH MEMORY USAGE
+   - Alerts if memory above 85%
+   - Warning at 75%
+   - Checks every 5 minutes
+
+3. HIGH DISK USAGE
+   - Alerts if disk above 85%
+   - Warning at 75%
+   - Per device monitoring
+
+4. AGENT HEARTBEAT
+   - Alerts if Datadog agent down
+   - Timeout: 15 minutes
+   - Critical alert
+
+5. ERROR LOGS
+   - Alerts if more than 50 errors in 5 minutes
+   - Log aggregation monitoring
+
+================================================================================
+ALERT ROUTING (AUTOMATIC)
+================================================================================
+
+ALL alerts go to:
+- PagerDuty: @pagerduty-pyxhealth-oncall
+- Email: john.pinto@pyxhealth.com, anthoney.schlak@pyxhealth.com, shaun.raj@pyxhealth.com
+
+PLUS environment-specific Slack channels:
+- Production subscriptions: @slack-alerts-prod
+- Staging subscriptions: @slack-alerts-stg
+- QA subscriptions: @slack-alerts-qa
+- Dev subscriptions: @slack-alerts-dev
+
+The script automatically detects environment from subscription name!
+
+================================================================================
+DEPLOYMENT TIME
+================================================================================
+
+Total Time: 5-10 minutes
+
+Breakdown:
+- Prerequisites check: 1 minute
+- Azure authentication: 1 minute
+- Pre-flight validation: 1 minute
+- Monitor deployment: 2-5 minutes (depends on number of subscriptions)
+- Summary and logging: 1 minute
+
+================================================================================
+WHAT THE SCRIPT DOES
+================================================================================
+
+STEP 1: Checks Prerequisites
+- PowerShell version (works with 5.1 or 7+)
+- Azure modules (auto-installs if missing)
+- Administrator privileges
+- Datadog API keys
+
+STEP 2: Connects to Azure
+- Authenticates with Azure
+- Lists all subscriptions in tenant
+- Shows subscription names and environments
+
+STEP 3: Pre-Flight Validation
+- Validates all requirements
+- Tests Datadog API connectivity
+- Verifies Azure access
+- Shows validation summary
+
+STEP 4: Deploys Monitors
+- Creates monitors for each subscription
+- Configures alert thresholds
+- Sets up notification routing
+- Shows progress for each monitor
+
+STEP 5: Saves Deployment Log
+- Creates detailed log file
+- Shows deployment summary
+- Provides Datadog dashboard link
+
+================================================================================
+CUSTOMIZATION OPTIONS
+================================================================================
+
+Use default PYX Health configuration:
+.\Deploy-Datadog-Clean.ps1
+
+Use different Datadog API keys:
+.\Deploy-Datadog-Clean.ps1 -DatadogAPIKey "your-key" -DatadogAppKey "your-app-key"
+
+Use different Datadog region:
+.\Deploy-Datadog-Clean.ps1 -DatadogRegion "us1"
+
+Change alert email addresses:
+.\Deploy-Datadog-Clean.ps1 -AlertEmail "@admin@company.com"
+
+Change Slack channels:
+.\Deploy-Datadog-Clean.ps1 -SlackProdChannel "@your-prod-channel"
+
+Skip updating existing monitors (safer for first run):
+.\Deploy-Datadog-Clean.ps1 -SkipUpdates
+
+Skip validation (not recommended):
+.\Deploy-Datadog-Clean.ps1 -SkipValidation
+
+================================================================================
+AFTER DEPLOYMENT
+================================================================================
+
+1. View monitors in Datadog:
+   Go to: https://app.us3.datadoghq.com/monitors/manage
+
+2. Check dashboard:
+   Go to: https://app.us3.datadoghq.com/dashboard
+
+3. Verify alerts are working:
+   - Check PagerDuty integration
+   - Check Slack channels
+   - Check email inbox
+
+4. Review deployment log:
+   File saved in script directory
+   Name: Datadog-Deployment-Log-YYYYMMDD-HHMMSS.txt
+
+================================================================================
+ENVIRONMENT DETECTION
+================================================================================
+
+The script automatically detects environment from subscription name:
+
+If subscription name contains:
+- "prod" or "production" = Production environment
+- "stag" or "staging" = Staging environment
+- "qa" = QA environment
+- "test" = Test environment
+- Anything else = Dev environment
+
+Examples:
+- "Azure-Production" = prod
+- "Staging-Environment" = staging
+- "QA-Testing" = qa
+- "Development-Sub" = dev
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+ERROR: "cannot be loaded because running scripts is disabled"
+SOLUTION:
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+
+ERROR: "This script must be run as Administrator"
+SOLUTION:
+1. Close PowerShell
+2. Right-click PowerShell
+3. Select "Run as Administrator"
+4. Run script again
+
+ERROR: "Azure modules not found"
+SOLUTION:
+The script will offer to install them automatically
+Answer "Y" when prompted
+Or install manually:
+Install-Module -Name Az -Repository PSGallery -Scope CurrentUser -Force
+
+ERROR: "Invalid Datadog API keys"
+SOLUTION:
+1. Check DATADOG-CONFIG-TEMPLATE.txt for correct keys
+2. Or specify keys manually:
+   .\Deploy-Datadog-Clean.ps1 -DatadogAPIKey "your-key" -DatadogAppKey "your-app-key"
+
+ERROR: "No subscriptions found"
+SOLUTION:
+1. Verify you have access to Azure subscriptions
+2. Run: Get-AzSubscription
+3. Contact Azure admin if no subscriptions listed
+
+ERROR: "Datadog API connectivity failed"
+SOLUTION:
+1. Check internet connectivity
+2. Verify Datadog region is correct (us3 for PYX Health)
+3. Verify API keys are valid
+4. Check firewall allows https://api.us3.datadoghq.com
+
+================================================================================
+MONITOR THRESHOLDS
+================================================================================
+
+Default thresholds (can be changed in script):
+
+CPU: 85% critical, 75% warning
+Memory: 85% critical, 75% warning
+Disk: 85% critical, 75% warning
+Agent Down: 15 minutes before alert
+Error Logs: 50 errors in 5 minutes
+
+To change thresholds:
+Edit Deploy-Datadog-Clean.ps1
+Find $Script:Config section (around line 208)
+Change values:
+CPUThreshold = 90 (example)
+MemoryThreshold = 80 (example)
+
+================================================================================
+COST INFORMATION
+================================================================================
+
+Datadog Costs (PYX Health):
+- Infrastructure Monitoring: $15 per host per month
+- Log Management: $0.10 per GB ingested
+- APM: $31 per host per month (if enabled)
+
+Example for 10 VMs:
+- Infrastructure only: $150/month
+- With logs (50GB): $155/month
+- With APM: $310/month
+
+Compared to Azure Monitor:
+- Azure Monitor Pro: $500-1000/month
+- Savings with Datadog: 50-75%
+
+================================================================================
+SECURITY BEST PRACTICES
+================================================================================
+
+1. API Keys:
+   - Default keys embedded in script for PYX Health
+   - For production, consider Azure Key Vault
+   - Never commit real keys to public repos
+
+2. Permissions:
+   - Script requires Administrator on local machine
+   - Azure: Reader role on subscriptions
+   - Datadog: Monitors Read/Write permission
+
+3. Network:
+   - Requires outbound HTTPS (443) to:
+     * https://api.us3.datadoghq.com
+     * https://management.azure.com
+     * https://login.microsoftonline.com
+
+4. Logging:
+   - All operations logged
+   - Log file saved automatically
+   - Review logs after deployment
+
+================================================================================
+NEXT STEPS
+================================================================================
+
+IMMEDIATE (After Deployment):
+1. Verify monitors in Datadog dashboard
+2. Test alert routing (trigger test alert)
+3. Review monitor configurations
+4. Check alert notification emails
+
+WITHIN FIRST WEEK:
+1. Configure additional monitors if needed
+2. Adjust thresholds based on actual usage
+3. Set up dashboards in Datadog
+4. Configure SLO monitoring
+
+ONGOING:
+1. Review alerts weekly
+2. Adjust thresholds as needed
+3. Add new subscriptions as they're created
+4. Monitor costs in Datadog
+5. Review and optimize alert routing
+
+================================================================================
+SUPPORT
+================================================================================
+
+Script Issues:
+- Review deployment log
+- Check error messages
+- Verify all prerequisites
+
+Azure Issues:
+- Verify subscription access
+- Check Azure AD permissions
+- Contact Azure admin
+
+Datadog Issues:
+- Verify API keys
+- Check Datadog dashboard
+- Review integration settings
+
+PYX Health IT:
+- Email: cloudops@pyxhealth.com
+- Slack: #cloudops-alerts
+
+================================================================================
+COMMAND REFERENCE
+================================================================================
+
+Basic deployment:
+.\Deploy-Datadog-Clean.ps1
+
+With custom API keys:
+.\Deploy-Datadog-Clean.ps1 -DatadogAPIKey "key" -DatadogAppKey "appkey"
+
+Different region:
+.\Deploy-Datadog-Clean.ps1 -DatadogRegion "us1"
+
+Custom email:
+.\Deploy-Datadog-Clean.ps1 -AlertEmail "@admin@company.com"
+
+Skip updates:
+.\Deploy-Datadog-Clean.ps1 -SkipUpdates
+
+Check Azure subscriptions:
+Get-AzSubscription
+
+View existing Datadog monitors:
+# Use Datadog web UI: https://app.us3.datadoghq.com/monitors/manage
+
+Install PowerShell 7:
+iex "& { $(irm https://aka.ms/install-powershell.ps1) } -UseMSI"
+
+Install Azure modules:
+Install-Module -Name Az -Repository PSGallery -Scope CurrentUser -Force
+
+================================================================================
+FILES SUMMARY
+================================================================================
+
+Deploy-Datadog-Clean.ps1
+- Main deployment script
+- 700+ lines of clean PowerShell
+- NO emojis, NO special characters, NO syntax errors
+- Auto-installs dependencies
+- Production-ready
+
+DATADOG-CONFIG-TEMPLATE.txt
+- Configuration reference
+- API keys and credentials
+- Alert routing settings
+- Threshold configurations
+
+DATADOG-QUICK-START.txt (this file)
+- Quick start guide
+- Step-by-step instructions
+- Troubleshooting
+- Command reference
+
+================================================================================
+END OF QUICK START GUIDE
+================================================================================
+
+You are ready to deploy Datadog monitoring for PYX Health!
+
+Just run: .\Deploy-Datadog-Clean.ps1

@@ -1,0 +1,106 @@
+DATADOG CONFIGURATION TEMPLATE
+PYX HEALTH CORPORATION
+
+This file contains the Datadog API keys and configuration for PYX Health.
+The deployment script uses these values by default.
+
+================================================================================
+DATADOG API CREDENTIALS
+================================================================================
+
+DD_API_KEY=14fe5ae3-6459-40a4-8f3b-b3c8c97e520e
+DD_APP_KEY=195558c2-6170-4af6-ba4f-4267b05e4017
+
+Datadog Region: US3
+Datadog API URL: https://api.us3.datadoghq.com/api/v1
+Datadog Dashboard: https://app.us3.datadoghq.com
+
+================================================================================
+ALERT ROUTING CONFIGURATION
+================================================================================
+
+Email Addresses:
+john.pinto@pyxhealth.com
+anthoney.schlak@pyxhealth.com
+shaun.raj@pyxhealth.com
+
+PagerDuty Handle:
+@pagerduty-pyxhealth-oncall
+
+Slack Channels:
+Production: @slack-alerts-prod
+Staging: @slack-alerts-stg
+QA: @slack-alerts-qa
+Dev: @slack-alerts-dev
+
+================================================================================
+MONITOR THRESHOLDS
+================================================================================
+
+CPU Threshold: 85%
+Memory Threshold: 85%
+Disk Threshold: 85%
+Agent Down Alert: 15 minutes
+Error Log Threshold: 50 errors in 5 minutes
+Re-notification: Every 60 minutes
+
+================================================================================
+HOW TO USE
+================================================================================
+
+OPTION 1: Use Default Configuration (Easiest)
+The script uses these values automatically.
+Just run:
+.\Deploy-Datadog-Clean.ps1
+
+OPTION 2: Override Values
+Specify different values when running the script:
+.\Deploy-Datadog-Clean.ps1 -DatadogAPIKey "your-key" -DatadogAppKey "your-app-key"
+
+OPTION 3: Change Email Addresses
+.\Deploy-Datadog-Clean.ps1 -AlertEmail "@your-email@company.com"
+
+OPTION 4: Change Slack Channels
+.\Deploy-Datadog-Clean.ps1 -SlackProdChannel "@your-prod-channel"
+
+================================================================================
+TO CHANGE THESE VALUES
+================================================================================
+
+Edit the script file: Deploy-Datadog-Clean.ps1
+Find these parameter default values (around line 60):
+
+DatadogAPIKey = 'your-new-key'
+DatadogAppKey = 'your-new-app-key'
+AlertEmail = '@your-email@company.com'
+PagerDutyHandle = '@your-pagerduty-handle'
+SlackProdChannel = '@your-slack-channel'
+
+OR
+
+Pass them as parameters when running the script (see above)
+
+================================================================================
+SECURITY NOTES
+================================================================================
+
+1. These API keys are for PYX Health Datadog account only
+2. Keep this file secure - do not share publicly
+3. For production, consider storing keys in Azure Key Vault
+4. Keys are embedded in script for convenience but can be overridden
+
+================================================================================
+DATADOG ACCOUNT INFORMATION
+================================================================================
+
+Organization: PYX Health
+Region: US3
+Account Type: Enterprise
+Features Enabled:
+- Infrastructure Monitoring
+- Log Management
+- APM (Application Performance Monitoring)
+- Synthetic Monitoring
+- Real User Monitoring
+
+================================================================================
