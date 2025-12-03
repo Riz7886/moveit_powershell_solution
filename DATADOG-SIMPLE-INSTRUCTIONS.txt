@@ -1,0 +1,300 @@
+DATADOG DEPLOYMENT - SIMPLE INSTRUCTIONS
+PYX HEALTH CORPORATION
+
+EXACTLY LIKE AVD SCRIPT - INTERACTIVE MENUS
+
+================================================================================
+HOW TO RUN
+================================================================================
+
+Just run the script:
+
+.\Deploy-Datadog-PYX-Health.ps1
+
+You will see a MENU with 4 options:
+
+[1] Install Datadog Agent (on this machine)
+[2] Create Monitoring Alerts (25 monitors)
+[3] Full Deployment (both steps)
+[4] Exit
+
+THAT'S IT - NO COMMAND LINE OPTIONS!
+
+================================================================================
+OPTION 1: INSTALL DATADOG AGENT
+================================================================================
+
+What it does:
+- Installs Datadog agent on current machine
+- Takes 2-3 minutes
+- Monitors everything on this machine
+
+When to use:
+- Run on EVERY server
+- Run on EVERY desktop
+- Run on EVERY laptop
+- Run on ANY machine you want monitored
+
+Example:
+You have 10 servers - run option [1] on each server
+
+================================================================================
+OPTION 2: CREATE MONITORING ALERTS
+================================================================================
+
+What it does:
+- Creates 25 comprehensive monitors in Datadog
+- Configures 24/7 alerts to IT department
+- Takes 5-10 minutes
+
+When to use:
+- Run ONCE after agents installed on all machines
+- Run from any machine with Azure access
+
+What you get:
+- 25 monitors per Azure subscription
+- Alerts for CPU, memory, disk, network
+- Security alerts (failed logins, NSG changes, RBAC)
+- Application alerts (slow response, errors, downtime)
+- Database alerts (high DTU, storage, deadlocks)
+- Cost alerts and backup failures
+
+================================================================================
+OPTION 3: FULL DEPLOYMENT
+================================================================================
+
+What it does:
+- Installs agent on current machine
+- Then creates all monitors
+- Takes 7-13 minutes
+
+When to use:
+- First time setup
+- You want both steps done automatically
+
+================================================================================
+TYPICAL DEPLOYMENT SCENARIO
+================================================================================
+
+Company has:
+- 5 Windows servers
+- 10 Windows desktops
+- 3 Azure subscriptions
+
+STEP 1: Run script on Server 1
+.\Deploy-Datadog-PYX-Health.ps1
+Choose: [1] Install Agent
+Wait 2-3 minutes
+
+STEP 2: Run script on Server 2
+.\Deploy-Datadog-PYX-Health.ps1
+Choose: [1] Install Agent
+Wait 2-3 minutes
+
+STEP 3: Run script on Server 3, 4, 5
+Same as above
+
+STEP 4: Run script on Desktop 1, 2, 3, etc
+Same as above
+
+STEP 5: Run script one more time from ANY machine
+.\Deploy-Datadog-PYX-Health.ps1
+Choose: [2] Create Monitoring Alerts
+Wait 5-10 minutes
+
+DONE!
+- 15 machines monitored
+- 75 monitors created (25 per subscription x 3)
+- 24/7 alerts active
+- IT department notified immediately of all issues
+
+================================================================================
+WHAT YOU SEE WHEN RUNNING
+================================================================================
+
+When you run the script:
+
+=========================================================================
+  DATADOG DEPLOYMENT FOR PYX HEALTH CORPORATION
+=========================================================================
+
+  What would you like to do?
+
+  [1] Install Datadog Agent (on this machine)
+      - Installs agent on current machine
+      - Takes 2-3 minutes
+      - Run this on EVERY machine you want monitored
+
+  [2] Create Monitoring Alerts (25 comprehensive monitors)
+      - Creates 25 monitors in Datadog
+      - Takes 5-10 minutes
+      - Run this ONCE after agents installed
+
+  [3] Full Deployment (Install Agent + Create Monitors)
+      - Runs both steps automatically
+      - Takes 7-13 minutes
+      - Best for first-time setup
+
+  [4] Exit
+
+=========================================================================
+
+Enter your choice (1-4):
+
+You just type 1, 2, or 3 and press Enter!
+
+================================================================================
+AFTER OPTION 1 (INSTALL AGENT)
+================================================================================
+
+You will see:
+
+=========================================================================
+  AGENT INSTALLATION COMPLETE
+=========================================================================
+
+  Machine: SERVER01
+  Agent Status: Running
+  Reporting To: us3.datadoghq.com
+
+The agent will start reporting data within 5 minutes
+
+Next steps:
+1. Install agent on other machines (run this script on each machine)
+2. After all agents installed, run option [2] to create monitors
+
+================================================================================
+AFTER OPTION 2 (CREATE MONITORS)
+================================================================================
+
+You will see:
+
+=========================================================================
+  MONITOR CREATION COMPLETE
+=========================================================================
+
+  Subscriptions: 3
+  Monitors Created: 75
+  Monitors Failed: 0
+
+  Dashboard: https://app.us3.datadoghq.com/monitors/manage
+
+All monitors are now active and sending 24/7 alerts
+
+================================================================================
+ALERTS GO TO
+================================================================================
+
+ALL 25 monitors send alerts to:
+
+EMAIL:
+john.pinto@pyxhealth.com
+anthoney.schlak@pyxhealth.com
+shaun.raj@pyxhealth.com
+
+PAGERDUTY:
+@pagerduty-pyxhealth-oncall
+
+SLACK:
+@slack-alerts-prod (production)
+@slack-alerts-stg (staging)
+@slack-alerts-qa (QA)
+@slack-alerts-dev (development)
+
+24 hours a day, 7 days a week
+
+================================================================================
+VERIFICATION
+================================================================================
+
+Check agent installed:
+Get-Service datadogagent
+
+Should show: Status = Running
+
+Check monitors created:
+Go to: https://app.us3.datadoghq.com/monitors/manage
+
+Should see: 25 monitors per subscription
+
+Test alerts:
+Trigger high CPU or error
+Verify email, PagerDuty, and Slack alerts received
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+ERROR: "not administrator"
+FIX: Right-click PowerShell > Run as Administrator
+
+ERROR: "installation failed"
+FIX: Check internet connection, try again
+
+ERROR: "no monitors created"
+FIX: Verify Azure access and try again
+
+================================================================================
+COMPARISON TO OLD SCRIPT
+================================================================================
+
+OLD SCRIPT (command line):
+.\Deploy-Datadog-Complete.ps1 -Mode InstallAgent
+.\Deploy-Datadog-Complete.ps1 -Mode CreateMonitors
+
+NEW SCRIPT (interactive menu):
+.\Deploy-Datadog-PYX-Health.ps1
+Choose [1] or [2] or [3]
+
+MUCH EASIER!
+
+================================================================================
+EXACTLY LIKE AVD SCRIPT
+================================================================================
+
+AVD Script:
+- Run script
+- See menu
+- Choose what to do
+- Script does everything
+
+Datadog Script:
+- Run script
+- See menu
+- Choose what to do
+- Script does everything
+
+SAME STYLE - 100% MATCH!
+
+================================================================================
+REQUIREMENTS
+================================================================================
+
+To run script:
+- Windows PowerShell (built into Windows)
+- Administrator privileges
+- Internet connection
+
+To install agent (option 1):
+- Run on any Windows machine
+- Agent monitors that machine
+
+To create monitors (option 2):
+- Azure account access
+- Run from any machine
+
+================================================================================
+ONE COMMAND - THAT'S ALL
+================================================================================
+
+.\Deploy-Datadog-PYX-Health.ps1
+
+Then choose what you want to do from the menu!
+
+NO MORE COMMAND LINE OPTIONS!
+NO MORE CONFUSION!
+JUST RUN AND CHOOSE!
+
+================================================================================
+END OF INSTRUCTIONS
+================================================================================
