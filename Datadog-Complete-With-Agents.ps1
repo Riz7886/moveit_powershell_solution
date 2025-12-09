@@ -208,6 +208,7 @@ function New-Monitor {
     }
 }
 
+# Original monitor definitions
 New-Monitor -Name "VM CPU High" -Query "avg(last_5m):avg:azure.vm.percentage_cpu{*} > 85" -Message "VM CPU above 85 percent"
 New-Monitor -Name "VM Network In High" -Query "avg(last_5m):avg:azure.vm.network_in_total{*} > 100000000" -Message "VM network in high"
 New-Monitor -Name "VM Network Out High" -Query "avg(last_5m):avg:azure.vm.network_out_total{*} > 100000000" -Message "VM network out high"
@@ -241,4 +242,102 @@ Write-Host "Then check: https://us3.datadoghq.com/monitors/manage" -ForegroundCo
 Write-Host ""
 Write-Host "You can run this script on other subscriptions" -ForegroundColor Yellow
 Write-Host "It will install agents on all VMs in each subscription" -ForegroundColor Yellow
+Write-Host ""
+
+####################################################################################
+#  STEP 10: AUTO-FIX DATADOG MONITORS (SYED FIX MODULE)
+####################################################################################
+
+Write-Host ""
+Write-Host "==============================================="
+Write-Host "   STARTING DATADOG MONITOR AUTO-FIX ENGINE   "
+Write-Host "===============================================" -ForegroundColor Cyan
+Write-Host ""
+
+$metricsApi = "https://api.us3.datadoghq.com/api/v1/metrics"
+
+try {
+    $metricResponse = Invoke-RestMethod -Uri $metricsApi -Method Get -Headers $headers -ErrorAction Stop
+    $allMetrics = $metricResponse.metrics
+    Write-Host "Datadog Metric Count: $($allMetrics.Count)" -ForegroundColor Green
+} catch {
+    Write-Host "ERROR: Unable to read Datadog metric list" -ForegroundColor Red
+    return
+}
+
+function Test-MetricExists {
+    param([string]$metric)
+    return $allMetrics -contains $metric
+}
+
+function Build-HybridQuery {
+    param(
+        [string]$agentMetric,
+        [string]$azureMetric,
+        [int]$threshold,
+        [switch]$LessThan
+    )
+
+    $valid = @()
+
+    if (Test-MetricExists $agentMetric) { $valid += "avg:$agentMetric{*}" }
+    if (Test-MetricExists $azureMetric) { $valid += "avg:$azureMetric{*}" }
+
+    if ($valid.Count -eq 0) { return $null }
+
+    $join = "(" + ($valid -join " OR ") + ")"
+
+    if ($LessThan) { return "avg(last_5m):$join < $threshold" }
+    return "avg(last_5m):$join > $threshold"
+}
+
+function New-FixedMonitor {
+    param(
+        [string]$name,
+        [string]$agentMetric,
+        [string]$azureMetric,
+        [int]$threshold,
+        [string]$message,
+        [switch]$LessThan
+    )
+
+    $query = Build-HybridQuery -agentMetric $agentMetric -azureMetric $azureMetric -threshold $threshold -LessThan:$LessThan
+    if (-not $query) {
+        Write-Host "[SKIP] $name → no valid metrics found" -ForegroundColor Yellow
+        return
+    }
+
+    $body = @{
+        name = $name
+        type = "metric alert"
+        query = $query
+        message = $message
+        tags = @("env:production")
+        options = @{
+            notify_no_data = $true
+            no_data_timeframe = 10
+            require_full_window = $false
+        }
+    } | ConvertTo-Json -Depth 10
+
+    try {
+        Invoke-RestMethod -Uri $monitorUrl -Method Post -Headers $headers -Body $body -ErrorAction Stop | Out-Null
+        Write-Host "[FIXED] $name" -ForegroundColor Green
+    } catch {
+        Write-Host "[ERROR] $name → $($_.Exception.Message)" -ForegroundColor Red
+    }
+}
+
+Write-Host ""
+Write-Host "Creating FIXED monitors..." -ForegroundColor Cyan
+
+New-FixedMonitor -name "CPU High (FIXED)" -agentMetric "system.cpu.user" -azureMetric "azure.vm.cpu_percentage" -threshold 85 -message "High CPU detected"
+New-FixedMonitor -name "Memory Low (FIXED)" -agentMetric "system.mem.pct_usable" -azureMetric "azure.vm.memory_used_percent" -threshold 20 -message "Memory low" -LessThan
+New-FixedMonitor -name "Disk High (FIXED)" -agentMetric "system.disk.in_use" -azureMetric "azure.vm.disk_used_percentage" -threshold 85 -message "Disk usage high"
+New-FixedMonitor -name "Network High (FIXED)" -agentMetric "system.net.bytes_sent" -azureMetric "azure.vm.network_out_total" -threshold 50000000 -message "High network traffic"
+
+Write-Host ""
+Write-Host "==============================================="
+Write-Host "   DATADOG MONITOR AUTO-FIX FINISHED SUCCESS   "
+Write-Host "===============================================" -ForegroundColor Green
 Write-Host ""
