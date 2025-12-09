@@ -1,3 +1,11 @@
 Get-Service datadogagent
 type "C:\ProgramData\Datadog\datadog.yaml" | Select-String "api_key"
 type "C:\ProgramData\Datadog\datadog.yaml" | Select-String "site"
+
+
+
+
+sudo systemctl status datadog-agent
+grep api_key /etc/datadog-agent/datadog.yaml
+grep site /etc/datadog-agent/datadog.yaml
+
