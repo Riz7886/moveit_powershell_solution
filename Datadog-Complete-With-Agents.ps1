@@ -187,25 +187,33 @@ $monitorUrl = "https://api.us3.datadoghq.com/api/v1/monitor"
 # Only the FIXED hybrid monitors are created below.
 
 ####################################################################################
-#  STEP 10: AUTO-FIX DATADOG MONITORS (SYED FIX MODULE)
+#  STEP 10: AUTO-FIX DATADOG MONITORS (SYED FIX MODULE - FINAL WORKING VERSION)
 ####################################################################################
 
 Write-Host ""
 Write-Host "==============================================="
-Write-Host "   STARTING DATADOG MONITOR AUTO-FIX ENGINE   "
+Write-Host "   STARTING DATADOG METRIC AUTO-FIX ENGINE     "
 Write-Host "===============================================" -ForegroundColor Cyan
 Write-Host ""
 
-# FIXED URL → must include "api." prefix
-$metricsApi = "https://api.us3.datadoghq.com/api/v1/metrics"
+# Correct v2 Metrics API endpoint
+$metricsApi = "https://api.us3.datadoghq.com/api/v2/metrics"
+
+# v2 headers must include Application Key + API Key
+$headersV2 = @{
+    "DD-API-KEY"        = $DD_API_KEY
+    "DD-APPLICATION-KEY" = $DD_APP_KEY
+    "Content-Type"      = "application/json"
+}
 
 try {
-    $metricResponse = Invoke-RestMethod -Uri $metricsApi -Method Get -Headers $headers -ErrorAction Stop
-    $allMetrics = $metricResponse.metrics
-    Write-Host "Datadog Metric Count: $($allMetrics.Count)" -ForegroundColor Green
-} catch {
-    Write-Host "ERROR: Unable to read Datadog metric list" -ForegroundColor Red
-    Write-Host $_.Exception.Message -ForegroundColor Red
+    $metricResponse = Invoke-RestMethod -Uri $metricsApi -Method Get -Headers $headersV2 -ErrorAction Stop
+    $allMetrics = $metricResponse.data.id
+    Write-Host "Datadog Metric Count Retrieved: $($allMetrics.Count)" -ForegroundColor Green
+}
+catch {
+    Write-Host "ERROR: Unable to read Datadog metric list (v2 API)" -ForegroundColor Red
+    Write-Host $_.Exception.Message -ForegroundColor DarkRed
     return
 }
 
@@ -229,11 +237,14 @@ function Build-HybridQuery {
 
     if ($valid.Count -eq 0) { return $null }
 
-    $join = "(" + ($valid -join " OR ") + ")"
+    $joined = "(" + ($valid -join " OR ") + ")"
 
-    if ($LessThan) { return "avg(last_5m):$join < $threshold" }
-    return "avg(last_5m):$join > $threshold"
+    if ($LessThan) { return "avg(last_5m):$joined < $threshold" }
+    return "avg(last_5m):$joined > $threshold"
 }
+
+# Post monitor endpoint
+$monitorUrl = "https://api.us3.datadoghq.com/api/v1/monitor"
 
 function New-FixedMonitor {
     param(
@@ -246,8 +257,9 @@ function New-FixedMonitor {
     )
 
     $query = Build-HybridQuery -agentMetric $agentMetric -azureMetric $azureMetric -threshold $threshold -LessThan:$LessThan
+
     if (-not $query) {
-        Write-Host "[SKIP] $name → no valid metrics found" -ForegroundColor Yellow
+        Write-Host "[SKIP] $name – no valid metric found" -ForegroundColor Yellow
         return
     }
 
@@ -260,28 +272,28 @@ function New-FixedMonitor {
         options = @{
             notify_no_data = $true
             no_data_timeframe = 10
-            require_full_window = $false
         }
-    } | ConvertTo-Json -Depth 10
+    } | ConvertTo-Json -Depth 6
 
     try {
-        Invoke-RestMethod -Uri "https://api.us3.datadoghq.com/api/v1/monitor" -Method Post -Headers $headers -Body $body -ErrorAction Stop | Out-Null
+        Invoke-RestMethod -Uri $monitorUrl -Method Post -Headers $headers -Body $body -ErrorAction Stop | Out-Null
         Write-Host "[FIXED] $name" -ForegroundColor Green
-    } catch {
+    }
+    catch {
         Write-Host "[ERROR] $name → $($_.Exception.Message)" -ForegroundColor Red
     }
 }
 
 Write-Host ""
-Write-Host "Creating FIXED monitors..." -ForegroundColor Cyan
+Write-Host "--- Creating FIXED Monitors (Hybrid) ---" -ForegroundColor Cyan
 
 New-FixedMonitor -name "CPU High (FIXED)" -agentMetric "system.cpu.user" -azureMetric "azure.vm.cpu_percentage" -threshold 85 -message "High CPU detected"
-New-FixedMonitor -name "Memory Low (FIXED)" -agentMetric "system.mem.pct_usable" -azureMetric "azure.vm.memory_used_percent" -threshold 20 -message "Memory low" -LessThan
+New-FixedMonitor -name "Memory Low (FIXED)" -agentMetric "system.mem.pct_usable" -azureMetric "azure.vm.memory_used_percentage" -threshold 20 -message "Memory low" -LessThan
 New-FixedMonitor -name "Disk High (FIXED)" -agentMetric "system.disk.in_use" -azureMetric "azure.vm.disk_used_percentage" -threshold 85 -message "Disk usage high"
 New-FixedMonitor -name "Network High (FIXED)" -agentMetric "system.net.bytes_sent" -azureMetric "azure.vm.network_out_total" -threshold 50000000 -message "High network traffic"
 
 Write-Host ""
 Write-Host "==============================================="
-Write-Host "   DATADOG MONITOR AUTO-FIX FINISHED SUCCESS   "
+Write-Host "   DATADOG FIXED MONITORS CREATED SUCCESSFULLY "
 Write-Host "===============================================" -ForegroundColor Green
 Write-Host ""
