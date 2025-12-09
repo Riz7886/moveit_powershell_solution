@@ -196,14 +196,16 @@ Write-Host "   STARTING DATADOG MONITOR AUTO-FIX ENGINE   "
 Write-Host "===============================================" -ForegroundColor Cyan
 Write-Host ""
 
+# FIXED URL → must include "api." prefix
 $metricsApi = "https://api.us3.datadoghq.com/api/v1/metrics"
 
 try {
     $metricResponse = Invoke-RestMethod -Uri $metricsApi -Method Get -Headers $headers -ErrorAction Stop
-    $allMetrics     = $metricResponse.metrics
+    $allMetrics = $metricResponse.metrics
     Write-Host "Datadog Metric Count: $($allMetrics.Count)" -ForegroundColor Green
 } catch {
     Write-Host "ERROR: Unable to read Datadog metric list" -ForegroundColor Red
+    Write-Host $_.Exception.Message -ForegroundColor Red
     return
 }
 
@@ -250,20 +252,20 @@ function New-FixedMonitor {
     }
 
     $body = @{
-        name    = $name
-        type    = "metric alert"
-        query   = $query
+        name = $name
+        type = "metric alert"
+        query = $query
         message = $message
-        tags    = @("env:production")
+        tags = @("env:production")
         options = @{
-            notify_no_data     = $true
-            no_data_timeframe  = 10
-            require_full_window= $false
+            notify_no_data = $true
+            no_data_timeframe = 10
+            require_full_window = $false
         }
     } | ConvertTo-Json -Depth 10
 
     try {
-        Invoke-RestMethod -Uri $monitorUrl -Method Post -Headers $headers -Body $body -ErrorAction Stop | Out-Null
+        Invoke-RestMethod -Uri "https://api.us3.datadoghq.com/api/v1/monitor" -Method Post -Headers $headers -Body $body -ErrorAction Stop | Out-Null
         Write-Host "[FIXED] $name" -ForegroundColor Green
     } catch {
         Write-Host "[ERROR] $name → $($_.Exception.Message)" -ForegroundColor Red
@@ -271,12 +273,12 @@ function New-FixedMonitor {
 }
 
 Write-Host ""
-Write-Host "Creating FIXED hybrid monitors..." -ForegroundColor Cyan
+Write-Host "Creating FIXED monitors..." -ForegroundColor Cyan
 
-New-FixedMonitor -name "CPU High (FIXED)"    -agentMetric "system.cpu.user"    -azureMetric "azure.vm.cpu_percentage"        -threshold 85       -message "High CPU detected"
-New-FixedMonitor -name "Memory Low (FIXED)"  -agentMetric "system.mem.pct_usable" -azureMetric "azure.vm.memory_used_percent" -threshold 20 -message "Memory low" -LessThan
-New-FixedMonitor -name "Disk High (FIXED)"   -agentMetric "system.disk.in_use"  -azureMetric "azure.vm.disk_used_percentage" -threshold 85       -message "Disk usage high"
-New-FixedMonitor -name "Network High (FIXED)"-agentMetric "system.net.bytes_sent" -azureMetric "azure.vm.network_out_total"  -threshold 50000000 -message "High network traffic"
+New-FixedMonitor -name "CPU High (FIXED)" -agentMetric "system.cpu.user" -azureMetric "azure.vm.cpu_percentage" -threshold 85 -message "High CPU detected"
+New-FixedMonitor -name "Memory Low (FIXED)" -agentMetric "system.mem.pct_usable" -azureMetric "azure.vm.memory_used_percent" -threshold 20 -message "Memory low" -LessThan
+New-FixedMonitor -name "Disk High (FIXED)" -agentMetric "system.disk.in_use" -azureMetric "azure.vm.disk_used_percentage" -threshold 85 -message "Disk usage high"
+New-FixedMonitor -name "Network High (FIXED)" -agentMetric "system.net.bytes_sent" -azureMetric "azure.vm.network_out_total" -threshold 50000000 -message "High network traffic"
 
 Write-Host ""
 Write-Host "==============================================="
