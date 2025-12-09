@@ -1,0 +1,122 @@
+RUN THIS SCRIPT FOR 100 PERCENT AUTOMATION
+
+
+SCRIPT NAME
+
+Datadog-100-Percent-Automated.ps1
+
+
+WHAT IT DOES
+
+Everything automatically:
+1. Connects to Azure
+2. Shows subscription menu
+3. Creates Service Principal
+4. Creates Client Secret
+5. Assigns Monitoring Reader role
+6. Configures Azure integration in Datadog
+7. Creates 16 monitors
+
+No manual steps
+No Azure Portal needed
+No Datadog portal needed
+100 percent automated
+
+
+HOW TO RUN
+
+Open PowerShell
+
+Run:
+.\Datadog-100-Percent-Automated.ps1
+
+Choose subscription from menu
+
+Wait 3 minutes
+
+Done
+
+
+WHAT HAPPENS
+
+Script connects to Azure
+Script shows subscriptions
+You choose number
+Script does everything else automatically
+
+
+TIME
+
+Total: 3 minutes for script
+Plus: 15 minutes wait for data
+Total: 20 minutes
+
+
+AFTER SCRIPT
+
+Wait 15 minutes
+Data flows from Azure to Datadog
+All monitors work
+Go check: https://us3.datadoghq.com/monitors/manage
+
+
+NO MANUAL STEPS
+
+Script creates Service Principal automatically
+Script assigns role automatically
+Script configures Datadog automatically
+Script creates monitors automatically
+
+You just run it
+
+
+REQUIREMENTS
+
+PowerShell
+Az module installed
+Azure access
+Datadog API keys (already in script)
+
+
+API KEYS
+
+Already configured:
+API Key: 38ff813dd7d46538706378cc3bd68e94
+App Key: 438d47ab7dbc503fb3f44439a20ad21761e78bbc
+
+
+MONITORS CREATED
+
+VM CPU High
+VM Network In High
+VM Network Out High
+VM Disk Read High
+VM Disk Write High
+VM Disk Operations High
+SQL Database DTU High
+SQL Database Storage High
+SQL Connection Failed
+SQL Deadlocks
+Storage Availability Low
+Storage Latency High
+App Service CPU High
+App Service Response Time High
+App Service HTTP 5xx
+Load Balancer Health Low
+
+
+SCRIPT SIZE
+
+166 lines
+Clean code
+No comments
+No special characters
+Production ready
+
+
+READY TO USE
+
+Just run it
+Everything automated
+No manual work
+Client will be happy
