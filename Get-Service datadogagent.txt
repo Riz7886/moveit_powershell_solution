@@ -9,3 +9,12 @@ sudo systemctl status datadog-agent
 grep api_key /etc/datadog-agent/datadog.yaml
 grep site /etc/datadog-agent/datadog.yaml
 
+
+
+Invoke-RestMethod -Uri "https://api.us3.datadoghq.com/api/v1/metrics" `
+  -Method Get `
+  -Headers @{
+      "DD-API-KEY" = "38ff813dd7d46538706378cc3bd68e94"
+      "DD-APPLICATION-KEY" = "438d47ab7dbc503fb3f44439a20ad21761e78bbc"
+  }
+
