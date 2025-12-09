@@ -1,7 +1,7 @@
 param(
     [string]$DD_API_KEY = "38ff813dd7d46538706378cc3bd68e94",
     [string]$DD_APP_KEY = "438d47ab7dbc503fb3f44439a20ad21761e78bbc",
-    [string]$DD_SITE = "us3.datadoghq.com"
+    [string]$DD_SITE    = "us3"
 )
 
 $ErrorActionPreference = 'Stop'
@@ -32,12 +32,12 @@ for ($i = 0; $i -lt $allSubs.Count; $i++) {
 }
 Write-Host ""
 
-$choice = Read-Host "Select subscription (1-$($allSubs.Count))"
+$choice        = Read-Host "Select subscription (1-$($allSubs.Count))"
 $selectedIndex = [int]$choice - 1
-$selectedSub = $allSubs[$selectedIndex]
+$selectedSub   = $allSubs[$selectedIndex]
 Set-AzContext -SubscriptionId $selectedSub.Id | Out-Null
 
-$subId = $selectedSub.Id
+$subId   = $selectedSub.Id
 $tenantId = $selectedSub.TenantId
 
 Write-Host ""
@@ -45,26 +45,26 @@ Write-Host "Using: $($selectedSub.Name)" -ForegroundColor Green
 Write-Host ""
 
 Write-Host "Step 3: Creating Service Principal..." -ForegroundColor Cyan
-$appName = "Datadog-Integration-Auto"
+$appName     = "Datadog-Integration-Auto"
 $existingApp = Get-AzADApplication -DisplayName $appName -ErrorAction SilentlyContinue
 
 if ($existingApp) {
     Write-Host "Service Principal exists" -ForegroundColor Yellow
     $appId = $existingApp.AppId
-    $sp = Get-AzADServicePrincipal -ApplicationId $appId
+    $sp    = Get-AzADServicePrincipal -ApplicationId $appId
 } else {
-    $app = New-AzADApplication -DisplayName $appName
+    $app   = New-AzADApplication -DisplayName $appName
     $appId = $app.AppId
-    $sp = New-AzADServicePrincipal -ApplicationId $appId
+    $sp    = New-AzADServicePrincipal -ApplicationId $appId
     Start-Sleep -Seconds 10
     Write-Host "Service Principal created" -ForegroundColor Green
 }
 
 Write-Host ""
 Write-Host "Step 4: Creating Client Secret..." -ForegroundColor Cyan
-$startDate = Get-Date
-$endDate = $startDate.AddYears(2)
-$secret = New-AzADAppCredential -ApplicationId $appId -StartDate $startDate -EndDate $endDate
+$startDate    = Get-Date
+$endDate      = $startDate.AddYears(2)
+$secret       = New-AzADAppCredential -ApplicationId $appId -StartDate $startDate -EndDate $endDate
 $clientSecret = $secret.SecretText
 Write-Host "Client Secret created" -ForegroundColor Green
 
@@ -83,17 +83,17 @@ Write-Host ""
 Write-Host "Step 6: Configuring Datadog Azure Integration..." -ForegroundColor Cyan
 $datadogUrl = "https://api.us3.datadoghq.com/api/v1/integration/azure"
 $headers = @{
-    "DD-API-KEY" = $DD_API_KEY
-    "DD-APPLICATION-KEY" = $DD_APP_KEY
-    "Content-Type" = "application/json"
+    "DD-API-KEY"        = $DD_API_KEY
+    "DD-APPLICATION-KEY"= $DD_APP_KEY
+    "Content-Type"      = "application/json"
 }
 
 $azureConfig = @{
-    tenant_name = $tenantId
-    client_id = $appId
-    client_secret = $clientSecret
-    host_filters = ""
-    app_service_plan_filters = ""
+    tenant_name             = $tenantId
+    client_id               = $appId
+    client_secret           = $clientSecret
+    host_filters            = ""
+    app_service_plan_filters= ""
 } | ConvertTo-Json
 
 try {
@@ -116,18 +116,18 @@ if (-not $VMs -or $VMs.Count -eq 0) {
     Write-Host ""
     
     $successCount = 0
-    $failCount = 0
+    $failCount    = 0
     
     foreach ($vm in $VMs) {
         $vmName = $vm.Name
-        $rg = $vm.ResourceGroupName
-        $os = $vm.StorageProfile.OsDisk.OsType
+        $rg     = $vm.ResourceGroupName
+        $os     = $vm.StorageProfile.OsDisk.OsType
         
         Write-Host "Installing agent on: $vmName ($os)" -ForegroundColor White
         
         if ($os -eq "Windows") {
             $script = @"
-`$msiUrl = 'https://s3.amazonaws.com/ddagent-windows-stable/datadog-agent-7-latest.amd64.msi'
+`$msiUrl  = 'https://s3.amazonaws.com/ddagent-windows-stable/datadog-agent-7-latest.amd64.msi'
 `$msiPath = "`$env:TEMP\datadog-agent.msi"
 try {
     Invoke-WebRequest -Uri `$msiUrl -OutFile `$msiPath -UseBasicParsing
@@ -174,75 +174,17 @@ systemctl restart datadog-agent
     Write-Host ""
     Write-Host "Agent Installation Summary:" -ForegroundColor Yellow
     Write-Host "  Success: $successCount" -ForegroundColor Green
-    Write-Host "  Failed: $failCount" -ForegroundColor Red
+    Write-Host "  Failed:  $failCount" -ForegroundColor Red
     Write-Host ""
 }
 
-Write-Host "Step 9: Creating Datadog Monitors..." -ForegroundColor Cyan
+Write-Host "Step 9: Creating Datadog Monitors (FIXED HYBRID ONLY)..." -ForegroundColor Cyan
 Write-Host ""
 
 $monitorUrl = "https://api.us3.datadoghq.com/api/v1/monitor"
 
-function New-Monitor {
-    param([string]$Name, [string]$Query, [string]$Message)
-    
-    $body = @{
-        name = $Name
-        type = "metric alert"
-        query = $Query
-        message = $Message
-        tags = @("env:production")
-        options = @{
-            thresholds = @{ critical = 1 }
-            notify_no_data = $true
-            no_data_timeframe = 10
-        }
-    } | ConvertTo-Json -Depth 5
-    
-    try {
-        Invoke-RestMethod -Uri $monitorUrl -Method Post -Headers $headers -Body $body -ErrorAction Stop | Out-Null
-        Write-Host "[OK] $Name" -ForegroundColor Green
-    }
-    catch {
-        Write-Host "[SKIP] $Name" -ForegroundColor Yellow
-    }
-}
-
-# Original monitor definitions
-New-Monitor -Name "VM CPU High" -Query "avg(last_5m):avg:azure.vm.percentage_cpu{*} > 85" -Message "VM CPU above 85 percent"
-New-Monitor -Name "VM Network In High" -Query "avg(last_5m):avg:azure.vm.network_in_total{*} > 100000000" -Message "VM network in high"
-New-Monitor -Name "VM Network Out High" -Query "avg(last_5m):avg:azure.vm.network_out_total{*} > 100000000" -Message "VM network out high"
-New-Monitor -Name "VM Disk Read High" -Query "avg(last_5m):avg:azure.vm.disk_read_bytes{*} > 100000000" -Message "VM disk read high"
-New-Monitor -Name "VM Disk Write High" -Query "avg(last_5m):avg:azure.vm.disk_write_bytes{*} > 100000000" -Message "VM disk write high"
-New-Monitor -Name "VM Disk Operations High" -Query "avg(last_5m):avg:azure.vm.disk_read_operations_persec{*} > 500" -Message "VM disk operations high"
-New-Monitor -Name "SQL Database DTU High" -Query "avg(last_5m):avg:azure.sql_servers_databases.dtu_consumption_percent{*} > 80" -Message "SQL DTU above 80 percent"
-New-Monitor -Name "SQL Database Storage High" -Query "avg(last_5m):avg:azure.sql_servers_databases.storage_percent{*} > 85" -Message "SQL storage above 85 percent"
-New-Monitor -Name "SQL Connection Failed" -Query "avg(last_5m):avg:azure.sql_servers_databases.connection_failed{*} > 5" -Message "SQL connection failures"
-New-Monitor -Name "SQL Deadlocks" -Query "avg(last_5m):avg:azure.sql_servers_databases.deadlock{*} > 0" -Message "SQL deadlocks detected"
-New-Monitor -Name "Storage Availability Low" -Query "avg(last_5m):avg:azure.storage_storageaccounts.availability{*} < 99" -Message "Storage availability below 99 percent"
-New-Monitor -Name "Storage Latency High" -Query "avg(last_5m):avg:azure.storage_storageaccounts.success_e2_e_latency{*} > 1000" -Message "Storage latency high"
-New-Monitor -Name "App Service CPU High" -Query "avg(last_5m):avg:azure.web_sites.cpu_time{*} > 80" -Message "App Service CPU above 80 percent"
-New-Monitor -Name "App Service Response Time High" -Query "avg(last_5m):avg:azure.web_sites.average_response_time{*} > 3" -Message "App Service response time above 3 seconds"
-New-Monitor -Name "App Service HTTP 5xx" -Query "avg(last_5m):avg:azure.web_sites.http_server_errors{*} > 10" -Message "App Service 5xx errors"
-New-Monitor -Name "Load Balancer Health Low" -Query "avg(last_5m):avg:azure.network_loadbalancers.health_probe_status{*} < 50" -Message "Load balancer health below 50 percent"
-
-Write-Host ""
-Write-Host "COMPLETE - EVERYTHING AUTOMATED" -ForegroundColor Green
-Write-Host ""
-Write-Host "What was done:" -ForegroundColor Yellow
-Write-Host "1. Created Service Principal in Azure" -ForegroundColor White
-Write-Host "2. Generated Client Secret" -ForegroundColor White
-Write-Host "3. Assigned Monitoring Reader role" -ForegroundColor White
-Write-Host "4. Configured Azure integration in Datadog" -ForegroundColor White
-Write-Host "5. Installed Datadog agents on $($VMs.Count) VMs" -ForegroundColor White
-Write-Host "6. Created 16 monitors in Datadog" -ForegroundColor White
-Write-Host ""
-Write-Host "Wait 15-20 minutes for data to flow" -ForegroundColor Yellow
-Write-Host "Then check: https://us3.datadoghq.com/monitors/manage" -ForegroundColor Cyan
-Write-Host ""
-Write-Host "You can run this script on other subscriptions" -ForegroundColor Yellow
-Write-Host "It will install agents on all VMs in each subscription" -ForegroundColor Yellow
-Write-Host ""
+# NOTE: Original Azure-only monitors removed (Option C).
+# Only the FIXED hybrid monitors are created below.
 
 ####################################################################################
 #  STEP 10: AUTO-FIX DATADOG MONITORS (SYED FIX MODULE)
@@ -258,7 +200,7 @@ $metricsApi = "https://api.us3.datadoghq.com/api/v1/metrics"
 
 try {
     $metricResponse = Invoke-RestMethod -Uri $metricsApi -Method Get -Headers $headers -ErrorAction Stop
-    $allMetrics = $metricResponse.metrics
+    $allMetrics     = $metricResponse.metrics
     Write-Host "Datadog Metric Count: $($allMetrics.Count)" -ForegroundColor Green
 } catch {
     Write-Host "ERROR: Unable to read Datadog metric list" -ForegroundColor Red
@@ -308,15 +250,15 @@ function New-FixedMonitor {
     }
 
     $body = @{
-        name = $name
-        type = "metric alert"
-        query = $query
+        name    = $name
+        type    = "metric alert"
+        query   = $query
         message = $message
-        tags = @("env:production")
+        tags    = @("env:production")
         options = @{
-            notify_no_data = $true
-            no_data_timeframe = 10
-            require_full_window = $false
+            notify_no_data     = $true
+            no_data_timeframe  = 10
+            require_full_window= $false
         }
     } | ConvertTo-Json -Depth 10
 
@@ -329,12 +271,12 @@ function New-FixedMonitor {
 }
 
 Write-Host ""
-Write-Host "Creating FIXED monitors..." -ForegroundColor Cyan
+Write-Host "Creating FIXED hybrid monitors..." -ForegroundColor Cyan
 
-New-FixedMonitor -name "CPU High (FIXED)" -agentMetric "system.cpu.user" -azureMetric "azure.vm.cpu_percentage" -threshold 85 -message "High CPU detected"
-New-FixedMonitor -name "Memory Low (FIXED)" -agentMetric "system.mem.pct_usable" -azureMetric "azure.vm.memory_used_percent" -threshold 20 -message "Memory low" -LessThan
-New-FixedMonitor -name "Disk High (FIXED)" -agentMetric "system.disk.in_use" -azureMetric "azure.vm.disk_used_percentage" -threshold 85 -message "Disk usage high"
-New-FixedMonitor -name "Network High (FIXED)" -agentMetric "system.net.bytes_sent" -azureMetric "azure.vm.network_out_total" -threshold 50000000 -message "High network traffic"
+New-FixedMonitor -name "CPU High (FIXED)"    -agentMetric "system.cpu.user"    -azureMetric "azure.vm.cpu_percentage"        -threshold 85       -message "High CPU detected"
+New-FixedMonitor -name "Memory Low (FIXED)"  -agentMetric "system.mem.pct_usable" -azureMetric "azure.vm.memory_used_percent" -threshold 20 -message "Memory low" -LessThan
+New-FixedMonitor -name "Disk High (FIXED)"   -agentMetric "system.disk.in_use"  -azureMetric "azure.vm.disk_used_percentage" -threshold 85       -message "Disk usage high"
+New-FixedMonitor -name "Network High (FIXED)"-agentMetric "system.net.bytes_sent" -azureMetric "azure.vm.network_out_total"  -threshold 50000000 -message "High network traffic"
 
 Write-Host ""
 Write-Host "==============================================="
