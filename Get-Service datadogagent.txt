@@ -1,0 +1,3 @@
+Get-Service datadogagent
+type "C:\ProgramData\Datadog\datadog.yaml" | Select-String "api_key"
+type "C:\ProgramData\Datadog\datadog.yaml" | Select-String "site"
