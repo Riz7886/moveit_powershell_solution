@@ -46,7 +46,7 @@ Restart-Service datadogagent
     }
     if($os -eq "Linux"){
       $cmd=@"
-DD_API_KEY=$DD_API_KEY DD_SITE=$DD_SITE bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script.sh)"
+DD_API_KEY=$DD_API_KEY DD_SITE=$DD_SITE bash -c "`$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script.sh)"
 systemctl restart datadog-agent
 "@
       try{
