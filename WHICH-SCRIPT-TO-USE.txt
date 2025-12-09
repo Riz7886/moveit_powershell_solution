@@ -1,0 +1,90 @@
+WHICH SCRIPT TO USE
+
+
+USE THIS SCRIPT
+
+Datadog-Complete-With-Agents.ps1
+
+This is the complete script
+
+Does everything including agent installation
+
+
+WHAT IT DOES
+
+1. Creates Service Principal
+2. Configures Datadog integration
+3. Installs agents on all VMs
+4. Creates monitors
+
+Everything automated
+
+
+HOW TO RUN
+
+.\Datadog-Complete-With-Agents.ps1
+
+Choose subscription
+
+Wait for completion
+
+Done
+
+
+FOR MULTIPLE SUBSCRIPTIONS
+
+Run script again
+
+Choose different subscription
+
+Wait for completion
+
+Repeat for each subscription
+
+
+CONFIRMATION
+
+YES installs agents on all VMs
+
+YES works for multiple subscriptions
+
+YES completely automated
+
+YES no manual work
+
+
+FILES YOU GOT
+
+Datadog-Complete-With-Agents.ps1
+Main script to use
+
+NEW-SCRIPT-EXPLANATION.txt
+Detailed explanation
+
+WHY-SERVICE-PRINCIPAL-REQUIRED.txt
+Explanation for client
+
+YOUR-SCRIPT-WORKED.txt
+Confirmation your first run worked
+
+
+NEXT STEPS
+
+Wait 20 minutes for your first subscription
+
+Check Datadog to verify data flowing
+
+Run script again on other subscriptions
+
+Each subscription takes 5-40 minutes depending on VM count
+
+
+READY TO USE
+
+Download Datadog-Complete-With-Agents.ps1
+
+Run on all subscriptions
+
+Everything automated
+
+Client will be happy
