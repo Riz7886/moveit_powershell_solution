@@ -53,18 +53,42 @@ foreach ($sub in $subscriptions) {
         $powerState = ($vm.PowerState -split " ")[1]
         $isRunning = $powerState -eq "running"
         
-        # Determine OS type
-        $osType = if ($vmDetails.StorageProfile.OsDisk.OsType) { 
-            $vmDetails.StorageProfile.OsDisk.OsType 
-        } else { 
-            "Unknown" 
+        # Determine OS type - Try multiple methods
+        $osType = "Unknown"
+        
+        # Method 1: From StorageProfile
+        if ($vmDetails.StorageProfile.OsDisk.OsType) { 
+            $osType = $vmDetails.StorageProfile.OsDisk.OsType
+        }
+        # Method 2: From VM status
+        elseif ($vm.OsName) {
+            if ($vm.OsName -like "*Windows*") {
+                $osType = "Windows"
+            } elseif ($vm.OsName -like "*Linux*") {
+                $osType = "Linux"
+            }
+        }
+        # Method 3: From image reference
+        elseif ($vmDetails.StorageProfile.ImageReference.Offer) {
+            $offer = $vmDetails.StorageProfile.ImageReference.Offer
+            if ($offer -like "*Windows*") {
+                $osType = "Windows"
+            } elseif ($offer -like "*Linux*" -or $offer -like "*Ubuntu*" -or $offer -like "*RHEL*" -or $offer -like "*CentOS*") {
+                $osType = "Linux"
+            }
         }
         
         # Check for Datadog agent extension
         $hasAgent = $false
         $agentStatus = "Not Installed"
         
-        if ($vmDetails.Extensions) {
+        # Check if this is a Databricks-managed VM (cannot install extensions)
+        $isDatabricksVM = $vmDetails.ResourceGroupName -like "*DATABRICKS*" -or $vmDetails.Name -like "*databricks*"
+        
+        if ($isDatabricksVM) {
+            $agentStatus = "Cannot Install (Databricks)"
+        }
+        elseif ($vmDetails.Extensions) {
             $datadogExt = $vmDetails.Extensions | Where-Object { 
                 $_.Publisher -eq "Datadog.Agent" -or $_.VirtualMachineExtensionType -like "*Datadog*"
             }
@@ -76,7 +100,9 @@ foreach ($sub in $subscriptions) {
                 $vmsWithoutAgent++
             }
         } else {
-            $vmsWithoutAgent++
+            if (-not $isDatabricksVM) {
+                $vmsWithoutAgent++
+            }
         }
         
         # Update counters
@@ -299,6 +325,7 @@ $htmlReport = @"
         .badge.unknown { background: #fef3c7; color: #92400e; }
         .badge.windows { background: #dbeafe; color: #1e40af; }
         .badge.linux { background: #fce7f3; color: #9f1239; }
+        .badge.databricks { background: #e0e7ff; color: #3730a3; font-style: italic; }
         
         .footer {
             background: #f9fafb;
@@ -402,6 +429,13 @@ foreach ($subGroup in $vmsBySubscription) {
                         <tbody>
 "@
         foreach ($vm in $runningWithoutAgent) {
+            # Determine agent badge class
+            if ($vm.AgentStatus -like "*Databricks*") {
+                $agentBadge = "databricks"
+            } else {
+                $agentBadge = "not-installed"
+            }
+            
             $htmlReport += @"
                             <tr>
                                 <td><strong>$($vm.VMName)</strong></td>
@@ -409,7 +443,7 @@ foreach ($subGroup in $vmsBySubscription) {
                                 <td>$($vm.Location)</td>
                                 <td><span class="badge $($vm.OS.ToLower())">$($vm.OS)</span></td>
                                 <td><span class="badge running">$($vm.Status)</span></td>
-                                <td><span class="badge not-installed">$($vm.AgentStatus)</span></td>
+                                <td><span class="badge $agentBadge">$($vm.AgentStatus)</span></td>
                             </tr>
 "@
         }
@@ -494,7 +528,15 @@ foreach ($subGroup in $vmsBySubscription) {
 "@
     foreach ($vm in $subGroup.Group | Sort-Object VMName) {
         $statusBadge = if ($vm.Status -eq "Running") { "running" } else { "stopped" }
-        $agentBadge = if ($vm.HasAgent) { "installed" } else { "not-installed" }
+        
+        # Determine agent badge class
+        if ($vm.AgentStatus -like "*Databricks*") {
+            $agentBadge = "databricks"
+        } elseif ($vm.HasAgent) {
+            $agentBadge = "installed"
+        } else {
+            $agentBadge = "not-installed"
+        }
         
         $htmlReport += @"
                             <tr>

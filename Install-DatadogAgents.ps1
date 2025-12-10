@@ -85,7 +85,7 @@ function Install-DatadogAgentOnVM {
                 Write-Log "Successfully installed Datadog agent on Windows VM: $VMName" "SUCCESS"
                 return $true
             } else {
-                Write-Log "Failed to install on Windows VM: $VMName - $($result.StatusCode)" "ERROR"
+                Write-Log "Failed to install on Windows VM: $VMName - Status: $($result.StatusCode)" "ERROR"
                 return $false
             }
         }
@@ -110,13 +110,27 @@ function Install-DatadogAgentOnVM {
                 Write-Log "Successfully installed Datadog agent on Linux VM: $VMName" "SUCCESS"
                 return $true
             } else {
-                Write-Log "Failed to install on Linux VM: $VMName - $($result.StatusCode)" "ERROR"
+                Write-Log "Failed to install on Linux VM: $VMName - Status: $($result.StatusCode)" "ERROR"
                 return $false
             }
         }
     }
     catch {
-        Write-Log "Exception installing agent on $VMName`: $_" "ERROR"
+        $errorMsg = $_.Exception.Message
+        
+        # Check for specific error types
+        if ($errorMsg -like "*403*" -or $errorMsg -like "*Forbidden*") {
+            Write-Log "AUTHORIZATION DENIED for $VMName - Check RBAC permissions or system deny assignments" "ERROR"
+        }
+        elseif ($errorMsg -like "*deny assignment*") {
+            Write-Log "SYSTEM DENY ASSIGNMENT blocks $VMName - This VM is managed and cannot have extensions" "ERROR"
+        }
+        elseif ($errorMsg -like "*timeout*" -or $errorMsg -like "*Long running operation failed*") {
+            Write-Log "TIMEOUT installing on $VMName - VM may not be properly provisioned or network issue" "ERROR"
+        }
+        else {
+            Write-Log "Exception installing agent on $VMName`: $errorMsg" "ERROR"
+        }
         return $false
     }
 }
@@ -170,7 +184,20 @@ foreach ($sub in $subscriptions) {
         $results.TotalProcessed++
         
         # Get full VM details
-        $vmDetails = Get-AzVM -ResourceGroupName $vm.ResourceGroupName -Name $vm.Name
+        try {
+            $vmDetails = Get-AzVM -ResourceGroupName $vm.ResourceGroupName -Name $vm.Name
+        } catch {
+            Write-Log "Failed to get details for: $($vm.Name) - $_" "ERROR"
+            $results.Skipped++
+            continue
+        }
+        
+        # SKIP DATABRICKS MANAGED VMs - They have system deny assignments
+        if ($vmDetails.ResourceGroupName -like "*DATABRICKS*" -or $vmDetails.Name -like "*databricks*") {
+            Write-Log "SKIPPING Databricks-managed VM: $($vm.Name) (Cannot install extensions on Databricks VMs)" "WARN"
+            $results.Skipped++
+            continue
+        }
         
         # Check if agent is already installed
         $hasDatadogAgent = $false
@@ -187,15 +214,33 @@ foreach ($sub in $subscriptions) {
             continue
         }
         
-        # Determine OS type
-        $osType = if ($vmDetails.StorageProfile.OsDisk.OsType) { 
-            $vmDetails.StorageProfile.OsDisk.OsType 
-        } else { 
-            "Unknown" 
+        # Determine OS type - Try multiple methods
+        $osType = "Unknown"
+        
+        # Method 1: From StorageProfile
+        if ($vmDetails.StorageProfile.OsDisk.OsType) { 
+            $osType = $vmDetails.StorageProfile.OsDisk.OsType
+        }
+        # Method 2: From VM status
+        elseif ($vm.OsName) {
+            if ($vm.OsName -like "*Windows*") {
+                $osType = "Windows"
+            } elseif ($vm.OsName -like "*Linux*") {
+                $osType = "Linux"
+            }
+        }
+        # Method 3: From image reference
+        elseif ($vmDetails.StorageProfile.ImageReference.Offer) {
+            $offer = $vmDetails.StorageProfile.ImageReference.Offer
+            if ($offer -like "*Windows*") {
+                $osType = "Windows"
+            } elseif ($offer -like "*Linux*" -or $offer -like "*Ubuntu*" -or $offer -like "*RHEL*" -or $offer -like "*CentOS*") {
+                $osType = "Linux"
+            }
         }
         
         if ($osType -eq "Unknown") {
-            Write-Log "Cannot determine OS type for: $($vm.Name) - Skipping" "WARN"
+            Write-Log "Cannot determine OS type for: $($vm.Name) - Try installing manually" "WARN"
             $results.Skipped++
             continue
         }
