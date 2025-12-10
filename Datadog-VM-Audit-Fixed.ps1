@@ -16,9 +16,12 @@ $OutputEncoding = [System.Text.Encoding]::UTF8
 
 # Configuration
 $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
-$reportPath = "Datadog-VM-Audit-$timestamp.html"
+$downloadsPath = [Environment]::GetFolderPath("UserProfile") + "\Downloads"
+$reportPath = Join-Path $downloadsPath "Datadog-VM-Audit-$timestamp.html"
+$csvPath = Join-Path $downloadsPath "Datadog-VMs-$timestamp.csv"
 
 Write-Host "Starting Datadog Agent Audit..." -ForegroundColor Cyan
+Write-Host "Report will be saved to: $reportPath" -ForegroundColor Yellow
 
 # Get all subscriptions
 try {
@@ -569,9 +572,17 @@ $htmlReport += @"
 "@
 
 # Write report to file with proper encoding
-[System.IO.File]::WriteAllText($reportPath, $htmlReport, [System.Text.UTF8Encoding]::new($false))
+try {
+    [System.IO.File]::WriteAllText($reportPath, $htmlReport, [System.Text.UTF8Encoding]::new($false))
+    Write-Host "`n========================================" -ForegroundColor Green
+    Write-Host "SUCCESS! Report generated!" -ForegroundColor Green
+    Write-Host "========================================" -ForegroundColor Green
+    Write-Host "`nReport saved to: $reportPath" -ForegroundColor Cyan
+} catch {
+    Write-Host "`nERROR writing HTML file: $_" -ForegroundColor Red
+    exit 1
+}
 
-Write-Host "`nReport generated successfully: $reportPath" -ForegroundColor Green
 Write-Host "`nSummary:" -ForegroundColor Cyan
 Write-Host "  Total VMs: $totalVMs"
 Write-Host "  VMs with Agent: $vmsWithAgent" -ForegroundColor Green
@@ -580,6 +591,18 @@ Write-Host "  Running VMs: $runningVMs"
 Write-Host "  Stopped VMs: $stoppedVMs"
 
 # Export VM list to CSV for bulk operations
-$csvPath = "Datadog-VMs-$timestamp.csv"
-$allVMs | Export-Csv -Path $csvPath -NoTypeInformation -Encoding UTF8
-Write-Host "`nVM list exported to: $csvPath" -ForegroundColor Green
+try {
+    $allVMs | Export-Csv -Path $csvPath -NoTypeInformation -Encoding UTF8
+    Write-Host "`nVM list exported to: $csvPath" -ForegroundColor Green
+} catch {
+    Write-Host "`nWarning: Could not export CSV: $_" -ForegroundColor Yellow
+}
+
+# Open the HTML report in default browser
+Write-Host "`nOpening report in browser..." -ForegroundColor Cyan
+try {
+    Start-Process $reportPath
+    Write-Host "Report opened successfully!" -ForegroundColor Green
+} catch {
+    Write-Host "Could not auto-open browser. Please open manually: $reportPath" -ForegroundColor Yellow
+}

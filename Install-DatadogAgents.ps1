@@ -39,7 +39,10 @@ $OutputEncoding = [System.Text.Encoding]::UTF8
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
-$logFile = "Datadog-Agent-Install-Log-$timestamp.txt"
+$downloadsPath = [Environment]::GetFolderPath("UserProfile") + "\Downloads"
+$logFile = Join-Path $downloadsPath "Datadog-Agent-Install-Log-$timestamp.txt"
+
+Write-Host "Installation log will be saved to: $logFile" -ForegroundColor Yellow
 
 function Write-Log {
     param([string]$Message, [string]$Level = "INFO")
@@ -375,6 +378,14 @@ $summaryHtml = @"
 </html>
 "@
 
-$summaryPath = "Datadog-Install-Summary-$timestamp.html"
+$summaryPath = Join-Path $downloadsPath "Datadog-Install-Summary-$timestamp.html"
 [System.IO.File]::WriteAllText($summaryPath, $summaryHtml, [System.Text.UTF8Encoding]::new($false))
 Write-Log "Summary report saved to: $summaryPath" "INFO"
+
+# Open the summary report
+try {
+    Start-Process $summaryPath
+    Write-Log "Summary report opened in browser" "INFO"
+} catch {
+    Write-Log "Could not auto-open browser. Please open manually: $summaryPath" "WARN"
+}
