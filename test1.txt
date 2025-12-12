@@ -1,0 +1,2 @@
+$headers = @{"DD-API-KEY" = "80f1734563d90c8c9d707eb59341976"}
+Invoke-RestMethod -Uri "https://api.us3.datadoghq.com/api/v1/validate" -Headers $headers
