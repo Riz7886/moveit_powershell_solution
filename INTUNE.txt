@@ -1,0 +1,27 @@
+Good discussion team. Here's my recommendation based on Microsoft Intune best practices:
+
+**Current Risk:** Using both "All Users" AND "All Devices" together creates duplicate processing and potential conflicts. Microsoft explicitly recommends NOT mixing user and device groups in a single assignment.
+
+**Best Practice Approach:**
+
+📱 **Device Groups** - Use for:
+- Required/core apps (must be on every device)
+- Security tools, VPN, endpoint protection
+- Apps that need to work before user signs in
+
+👤 **User Groups** - Use for:
+- Apps that follow the user across devices
+- "Available" apps in Company Portal
+- User-specific software
+
+**Recommended Structure:**
+1. Create `SG-Intune-ManagedDevices` (Dynamic)
+2. Create `SG-Intune-LicensedUsers` (Dynamic)  
+3. Create `SG-Intune-Pilot` (for testing)
+
+**Deployment Flow:**
+Pilot Group → 48hr validation → Production Group
+
+**My Vote:** Standardize on Device Groups for Required apps, User Groups for Available apps. Never both for the same deployment.
+
+Happy to document this as our team standard if we agree on the approach.
