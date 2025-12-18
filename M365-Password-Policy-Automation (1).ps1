@@ -78,6 +78,19 @@ $ServiceAccountPatterns = @(
 )
 
 # ============================================================
+# WHITELIST - These are REAL HUMANS, NOT service accounts
+# Add names here if they got incorrectly flagged
+# ============================================================
+$HumanAccountWhitelist = @(
+    "Chelsey Clauson",
+    "Franchesa Tailbot",
+    "chelsey.clauson",
+    "franchesa.tailbot",
+    "cclauson",
+    "ftailbot"
+)
+
+# ============================================================
 # FUNCTION: Install Required Modules
 # ============================================================
 function Install-RequiredModules {
@@ -181,6 +194,13 @@ function Connect-ToGraph {
 # ============================================================
 function Test-IsServiceAccount {
     param([string]$UserPrincipalName, [string]$DisplayName)
+    
+    # CHECK WHITELIST FIRST - These are confirmed HUMAN accounts
+    foreach ($humanName in $HumanAccountWhitelist) {
+        if ($DisplayName -like "*$humanName*" -or $UserPrincipalName -like "*$humanName*") {
+            return $false  # NOT a service account - it's a real human
+        }
+    }
     
     foreach ($pattern in $ServiceAccountPatterns) {
         if ($UserPrincipalName -match $pattern -or $DisplayName -match $pattern) {
