@@ -1,0 +1,305 @@
+HITRUST COMPLIANT DATABRICKS ARCHITECTURE
+Target Architecture and Security Requirements
+
+================================================================================
+EXECUTIVE SUMMARY
+================================================================================
+
+This document outlines the target architecture for deploying Azure Databricks
+in a HiTrust-compliant environment. HiTrust CSF (Common Security Framework)
+combines requirements from HIPAA, NIST, ISO 27001, and other frameworks to
+provide comprehensive security controls for healthcare data.
+
+Key Requirements:
+- Network isolation via VNet Injection
+- Encryption with Customer-Managed Keys
+- Centralized data governance with Unity Catalog
+- Comprehensive audit logging with 7-year retention
+- Azure AD integration with multi-factor authentication
+
+
+================================================================================
+ARCHITECTURE OVERVIEW
+================================================================================
+
+NETWORK TOPOLOGY:
+
+                         Azure Front Door
+                        (WAF + DDoS Protection)
+                                |
+                                v
+                    Azure Virtual Network (Hub)
+                                |
+                    +-----------+-----------+
+                    |                       |
+                    v                       v
+            Databricks VNet           Data Services VNet
+            (VNet Injection)          (Private Endpoints)
+                    |                       |
+            +-------+-------+       +-------+-------+
+            |               |       |       |       |
+         Public          Private  Storage  Key    SQL
+         Subnet          Subnet   Account  Vault  Database
+        (Control)       (Compute)
+
+
+SUBNET CONFIGURATION:
+
+    Subnet Name              CIDR Block      Purpose
+    ---------------------------------------------------------------------------
+    Gateway Subnet           10.0.0.0/24     Application Gateway, VPN Gateway
+    Databricks Public        10.0.1.0/24     Control plane communication
+    Databricks Private       10.0.2.0/24     Compute cluster nodes
+    Data Services            10.0.3.0/24     Private endpoints
+    Management               10.0.4.0/24     Bastion, jump servers
+
+
+================================================================================
+HITRUST SECURITY REQUIREMENTS
+================================================================================
+
+1. NETWORK ISOLATION
+
+   Requirement: All data processing must occur within controlled network boundary
+   
+   Implementation:
+   - Deploy Databricks with VNet Injection (Premium tier required)
+   - Configure Private Endpoints for all data services
+   - Disable public IP addresses on compute clusters
+   - Implement NSG rules restricting traffic flow
+   - Deploy Azure Firewall for egress filtering
+   
+   Databricks Premium tier is mandatory for VNet Injection capability.
+
+
+2. ENCRYPTION
+
+   Requirement: Encrypt all data at rest and in transit
+   
+   Implementation:
+   - Customer-Managed Keys (CMK) stored in Azure Key Vault
+   - TLS 1.2 minimum for all communications
+   - Enable infrastructure double encryption
+   - Configure DBFS encryption with CMK
+   - Implement transparent data encryption for SQL databases
+   
+   Key Vault Configuration:
+   - Soft delete enabled (required)
+   - Purge protection enabled (required)
+   - Access policies for Databricks service principal
+
+
+3. ACCESS CONTROL
+
+   Requirement: Role-based access with least privilege principle
+   
+   Implementation:
+   - Azure AD Single Sign-On integration
+   - SCIM provisioning for automated user synchronization
+   - Unity Catalog for centralized data governance
+   - Table-level and column-level access controls
+   - IP Access Lists restricting connection sources
+   - Conditional Access policies enforcing MFA
+   
+   Role Structure:
+   - Workspace Admin: Full administrative access
+   - Data Engineer: Create clusters, run jobs, access data
+   - Data Analyst: Read-only access to approved datasets
+   - Data Scientist: ML workspace access, limited data access
+
+
+4. AUDIT LOGGING
+
+   Requirement: Comprehensive logging with long-term retention
+   
+   Implementation:
+   - Enable Databricks diagnostic settings
+   - Route logs to Azure Log Analytics workspace
+   - Configure Unity Catalog audit logging
+   - Set retention period to 7 years minimum
+   - Implement immutable storage for compliance evidence
+   
+   Log Categories:
+   - Workspace access logs
+   - Cluster lifecycle events
+   - Job execution logs
+   - Data access audit trail
+   - Security events and alerts
+
+
+5. DATA GOVERNANCE
+
+   Requirement: Classify, protect, and track sensitive data
+   
+   Implementation:
+   - Deploy Unity Catalog metastore
+   - Implement data classification tagging
+   - Configure dynamic data masking for PHI columns
+   - Enable data lineage tracking
+   - Define data retention and deletion policies
+   
+   Classification Levels:
+   - Public: Non-sensitive business data
+   - Internal: Business confidential
+   - Confidential: Sensitive business data
+   - PHI: Protected Health Information (highest protection)
+
+
+================================================================================
+TIER COMPARISON
+================================================================================
+
+Feature                     Standard        Premium         HiTrust Required
+-------------------------------------------------------------------------------
+DBU Rate                    $0.15/DBU       $0.40/DBU       Premium Required
+VNet Injection              No              Yes             Yes
+Private Link                No              Yes             Yes
+Customer-Managed Keys       No              Yes             Yes
+Unity Catalog               No              Yes             Yes
+IP Access Lists             No              Yes             Yes
+Audit Logging               Basic           Full            Full Required
+Cluster Policies            Limited         Full            Full Required
+
+Conclusion: Databricks Premium tier is required for HiTrust compliance.
+
+
+================================================================================
+COST OPTIMIZATION
+================================================================================
+
+1. CLUSTER RIGHT-SIZING
+   
+   - Start with minimum viable cluster size
+   - Enable auto-scaling based on workload
+   - Use memory-optimized instances for data processing
+   - Use compute-optimized instances for ML training
+   - Review utilization metrics monthly
+
+
+2. CLUSTER POLICIES
+
+   Implement policies to control costs:
+   - Maximum cluster size limits
+   - Mandatory auto-termination (15-30 minutes idle)
+   - Approved instance type list
+   - DBU consumption limits per team
+
+
+3. SPOT INSTANCES
+
+   Use Azure Spot VMs for non-critical workloads:
+   - Development and testing environments
+   - Batch processing jobs (fault-tolerant)
+   - Training workloads with checkpointing
+   
+   Expected savings: 30-70% compared to on-demand
+   
+   Not recommended for:
+   - Production real-time processing
+   - Time-sensitive workloads
+
+
+4. SCHEDULED OPERATIONS
+
+   - Terminate development clusters outside business hours
+   - Scale down non-production environments on weekends
+   - Use Azure Automation for scheduled scaling
+   - Implement tagging for cost allocation
+
+
+5. RESERVED CAPACITY
+
+   For predictable workloads:
+   - 1-year commitment: approximately 20% savings
+   - 3-year commitment: approximately 40% savings
+   - Calculate based on average steady-state usage
+
+
+================================================================================
+ESTIMATED MONTHLY COSTS
+================================================================================
+
+Component                               Small       Medium      Large
+-------------------------------------------------------------------------------
+Databricks Premium (DBU consumption)    $1,200      $3,000      $8,000
+Virtual Network + Private Endpoints     $50         $100        $200
+Azure Key Vault                         $10         $20         $50
+Log Analytics (audit logs)              $50         $150        $400
+Storage Account (data lake)             $100        $300        $800
+Azure Firewall (optional)               $0          $900        $900
+-------------------------------------------------------------------------------
+TOTAL ESTIMATED                         $1,410      $4,470      $10,350
+
+Notes:
+- Small: 1-5 users, light processing, development focus
+- Medium: 10-25 users, regular processing, mixed workloads
+- Large: 50+ users, heavy processing, production workloads
+- Costs vary based on actual usage patterns
+
+
+================================================================================
+IMPLEMENTATION CHECKLIST
+================================================================================
+
+NETWORK SECURITY
+[ ] Create Virtual Network with required subnets
+[ ] Deploy Databricks workspace with VNet Injection
+[ ] Configure Private Endpoints for storage accounts
+[ ] Configure Private Endpoint for Key Vault
+[ ] Implement NSG rules for all subnets
+[ ] Deploy Azure Firewall for egress control (if required)
+[ ] Disable public IP addresses on clusters
+
+IDENTITY AND ACCESS
+[ ] Configure Azure AD SSO for Databricks
+[ ] Enable SCIM provisioning
+[ ] Enforce MFA via Conditional Access
+[ ] Create workspace groups and roles
+[ ] Configure IP Access Lists
+[ ] Implement service principals for automation
+
+ENCRYPTION
+[ ] Create Azure Key Vault with soft delete
+[ ] Generate Customer-Managed Keys
+[ ] Configure Databricks CMK encryption
+[ ] Enable DBFS encryption
+[ ] Verify TLS 1.2 enforcement
+
+DATA GOVERNANCE
+[ ] Deploy Unity Catalog metastore
+[ ] Define data classification schema
+[ ] Configure column-level security
+[ ] Implement data masking policies
+[ ] Enable lineage tracking
+
+MONITORING AND AUDIT
+[ ] Create Log Analytics workspace
+[ ] Enable Databricks diagnostic settings
+[ ] Configure audit log retention (7 years)
+[ ] Create security alert rules
+[ ] Implement dashboard for compliance monitoring
+
+
+================================================================================
+RECOMMENDATIONS
+================================================================================
+
+1. Start with a proof-of-concept environment to validate architecture
+2. Engage Azure support for HiTrust-specific guidance
+3. Document all security controls for audit evidence
+4. Implement automated compliance scanning
+5. Schedule quarterly security reviews
+6. Train team on HiTrust requirements and Databricks security features
+
+
+================================================================================
+REFERENCES
+================================================================================
+
+- Azure Databricks Security Best Practices
+- HiTrust CSF Framework Documentation
+- Azure Compliance Documentation
+- Databricks Unity Catalog Documentation
+- Azure Private Link Documentation
+
+================================================================================
