@@ -1,0 +1,19 @@
+Hi Tony / Patryk,
+The Databricks-Datadog monitoring integration is now fully operational.
+What was implemented:
+A PowerShell script that connects to our Databricks workspace, retrieves cluster metrics (CPU, Memory, DBU usage, cluster status), and sends them to Datadog via the V2 API.
+How it works:
+The script runs automatically every 60 seconds via Windows Task Scheduler. It runs as a background service with no user interaction required and will survive system reboots.
+Metrics being sent:
+custom.databricks.cluster.status
+custom.databricks.cluster.cpu
+custom.databricks.cluster.memory
+custom.databricks.cluster.dbu_usage
+Tags configured:
+service:databricks, env:prod, hybrid:true, cluster_name, cluster_id, state
+Current status:
+All Databricks monitors in Datadog are now showing GREEN and receiving data continuously.
+Log location:
+C:\Logs\Databricks-Datadog.log
+Let me know if you have any questions.
+Syed
