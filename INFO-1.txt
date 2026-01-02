@@ -1,0 +1,37 @@
+# All we do is CALL this API to GET data:
+GET /api/2.0/clusters/list
+
+# Then SEND to Datadog - that's it!
+```
+
+**We never WRITE anything to Databricks!**
+
+---
+
+## The Issues Shaun Mentions:
+
+| Issue | Cause | Our Script? |
+|-------|-------|-------------|
+| initScripts.0: Source Workspace not supported | Someone added init scripts to cluster config | ❌ NOT US |
+| Cluster name mangled | Someone modified cluster settings | ❌ NOT US |
+| Cluster can't shut off | Cluster configuration issue | ❌ NOT US |
+
+---
+
+## Reply to Shaun:
+```
+Hi Shaun,
+
+The Datadog monitoring script I created is READ-ONLY - it only calls the 
+Databricks API to get cluster info and sends it to Datadog. It does NOT:
+
+- Install any init scripts
+- Modify cluster configurations  
+- Change cluster names
+- Affect cluster startup/shutdown
+
+The init script errors you're seeing are from something else - possibly 
+someone added init scripts directly to the cluster configuration in 
+Databricks. Can you check who modified the cluster settings recently?
+
+Syed
