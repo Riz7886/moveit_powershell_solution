@@ -1,7 +1,1 @@
-# Check MOVEit WAF
-az account set --subscription "SUB-PRODUCT-PROD"
-az network front-door waf-policy show --name "MOVEitWAFPolicy" --resource-group "RG-MOVEIT" --query "{name:name, mode:policySettings.mode, rules:managedRules.managedRuleSets[].ruleSetType}" -o table
-
-# Check PyxIQ WAF  
-az account set --subscription "sub-corp-prod-001"
-az network front-door waf-policy show --name "PyxIQPolicy" --resource-group "Production" --query "{name:name, mode:policySettings.mode, rules:managedRules.managedRuleSets[].ruleSetType}" -o table
+az account set --subscription "sub-product-prod"; az afd waf-policy managed-rule-set add --policy-name "moveitwafpolicyPremium" --resource-group "rg-moveit" --type "Microsoft_DefaultRuleSet" --version "2.1"
