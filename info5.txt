@@ -1,1 +1,1 @@
-az account set --subscription "sub-product-prod"; az afd waf-policy managed-rule-set add --policy-name "moveitwafpolicyPremium" --resource-group "rg-moveit" --type "Microsoft_DefaultRuleSet" --version "2.1"
+Update-AzFrontDoorCdnSecurityPolicy -ResourceGroupName "rg-moveit" -ProfileName "moveit-frontdoor-profile" -Name "moveit-waf-security"
