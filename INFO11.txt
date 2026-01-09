@@ -1,8 +1,7 @@
-Got it, thanks Tony! So MoveIT is already pushing Five9 recordings to Azure Blob in both preprod and prod.
-To extend the retention from 7 days to 90 days for the QA team, can you share:
 
-Storage account name (where MoveIT writes to)
-Container name (looks like "five9"?)
-Resource group it's in
 
-I'll update the lifecycle policy to 90 days - should only take a few minutes once I have the storage account details.
+"I ran a cost optimization audit across all our Azure SQL databases"
+"91% of our databases are overprovisioned - we're paying for capacity we don't use"
+"By right-sizing, we can save nearly $60,000 per year"
+"Top 3 quick wins alone save us over $2,000/month"
+"I have the full report with specific recommendations for each database"
