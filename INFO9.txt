@@ -1,4 +1,0 @@
-Connect-AzAccount
-Set-AzContext -Subscription "sub-corp-prod-001"
-
-Get-AzVM -Location "westus" | Select-Object Name, ResourceGroupName, VmSize, @{N='OSDisk';E={$_.StorageProfile.OsDisk.ManagedDisk.Id -ne $null}} | Format-Table
