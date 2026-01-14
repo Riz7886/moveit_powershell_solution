@@ -1,1 +1,0 @@
-Update-AzFrontDoorCdnSecurityPolicy -ResourceGroupName "rg-moveit" -ProfileName "moveit-frontdoor-profile" -Name "moveit-waf-security"
