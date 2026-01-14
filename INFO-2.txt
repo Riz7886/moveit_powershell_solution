@@ -1,1 +1,0 @@
-Copy-Item "C:\Users\SyedRizvi\Downloads\DataDog-fixed-script\Databricks-Datadog-Task.ps1" -Destination "C:\Scripts\"
