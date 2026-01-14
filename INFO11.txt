@@ -1,7 +1,0 @@
-
-
-"I ran a cost optimization audit across all our Azure SQL databases"
-"91% of our databases are overprovisioned - we're paying for capacity we don't use"
-"By right-sizing, we can save nearly $60,000 per year"
-"Top 3 quick wins alone save us over $2,000/month"
-"I have the full report with specific recommendations for each database"
