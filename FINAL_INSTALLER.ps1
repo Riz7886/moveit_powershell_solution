@@ -1,27 +1,31 @@
-<#
-.SYNOPSIS
-    ONE-SCRIPT INSTALLER - Installs everything and configures Datadog + PagerDuty
-
-.DESCRIPTION
-    This script does EVERYTHING:
-    - Installs Python 3.11 if not installed
-    - Installs required Python packages
-    - Creates the configuration script
-    - Runs the configuration
-    - No Docker needed!
-
-.USAGE
-    Right-click -> Run with PowerShell
-    OR
-    .\FINAL_INSTALLER.ps1
-#>
+# EDIT THESE 4 LINES WITH YOUR KEYS
+$DATADOG_API_KEY = "YOUR_DATADOG_API_KEY_HERE"
+$DATADOG_APP_KEY = "YOUR_DATADOG_APPLICATION_KEY_HERE"
+$PAGERDUTY_ROUTING_KEY = "YOUR_PAGERDUTY_ROUTING_KEY_HERE"
+$WEBHOOK_URL = "YOUR_WEBHOOK_URL_HERE"
 
 Write-Host ""
 Write-Host "================================================================" -ForegroundColor Cyan
-Write-Host "  ULTIMATE ONE-CLICK INSTALLER" -ForegroundColor Green
+Write-Host "  FINAL INSTALLER - MOVEIT MONITORING" -ForegroundColor Green
 Write-Host "  Configures: MOVITAUTO, MOVEITXFR" -ForegroundColor Green
 Write-Host "  Alerts: CPU >85%, Memory >85%, VM Stopped" -ForegroundColor Green
 Write-Host "================================================================" -ForegroundColor Cyan
+Write-Host ""
+
+# Validate keys are filled in
+if ($DATADOG_API_KEY -eq "YOUR_DATADOG_API_KEY_HERE" -or $DATADOG_APP_KEY -eq "YOUR_DATADOG_APPLICATION_KEY_HERE" -or $PAGERDUTY_ROUTING_KEY -eq "YOUR_PAGERDUTY_ROUTING_KEY_HERE" -or $WEBHOOK_URL -eq "YOUR_WEBHOOK_URL_HERE") {
+    Write-Host "ERROR: You must edit the keys at the top of this script!" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "Open this file in notepad and replace:" -ForegroundColor Yellow
+    Write-Host "  - YOUR_DATADOG_API_KEY_HERE" -ForegroundColor Gray
+    Write-Host "  - YOUR_DATADOG_APPLICATION_KEY_HERE" -ForegroundColor Gray
+    Write-Host "  - YOUR_PAGERDUTY_ROUTING_KEY_HERE" -ForegroundColor Gray
+    Write-Host "  - YOUR_WEBHOOK_URL_HERE" -ForegroundColor Gray
+    Write-Host ""
+    exit 1
+}
+
+Write-Host "Keys validated. Starting installation..." -ForegroundColor Green
 Write-Host ""
 
 # Check if running as Administrator
@@ -41,7 +45,6 @@ Write-Host "STEP 1: Checking Python Installation" -ForegroundColor Yellow
 Write-Host ""
 
 $pythonInstalled = $false
-$pythonCmd = "python"
 
 try {
     $pythonVersion = & python --version 2>&1
@@ -79,11 +82,6 @@ if (-not $pythonInstalled) {
         
     } catch {
         Write-Host "Failed to install Python: $_" -ForegroundColor Red
-        Write-Host ""
-        Write-Host "MANUAL INSTALLATION:" -ForegroundColor Yellow
-        Write-Host "1. Download: https://www.python.org/downloads/" -ForegroundColor Gray
-        Write-Host "2. Run installer and check 'Add Python to PATH'" -ForegroundColor Gray
-        Write-Host "3. Restart PowerShell and run this script again" -ForegroundColor Gray
         exit 1
     }
 }
@@ -108,7 +106,7 @@ Write-Host ""
 Write-Host "STEP 3: Creating Configuration Script" -ForegroundColor Yellow
 Write-Host ""
 
-$scriptContent = @'
+$scriptContent = @"
 import requests
 import json
 import sys
@@ -148,6 +146,7 @@ class DatadogConfigurator:
                 return True
             else:
                 print("Failed: " + str(response.status_code))
+                print("Response: " + response.text)
                 return False
         except Exception as e:
             print("Error: " + str(e))
@@ -218,6 +217,7 @@ class DatadogConfigurator:
                 return True
             else:
                 print("Failed: " + str(response.status_code))
+                print("Response: " + response.text)
                 return False
         except Exception as e:
             print("Error: " + str(e))
@@ -235,7 +235,7 @@ class PagerDutyConfigurator:
             "event_action": "trigger",
             "payload": {
                 "summary": "MoveIT Configuration Complete - MOVITAUTO & MOVEITXFR",
-                "source": "ultimate_auto_configure.py",
+                "source": "final_installer.py",
                 "severity": "info",
                 "custom_details": {
                     "configured_vms": "MOVITAUTO, MOVEITXFR",
@@ -258,35 +258,19 @@ class PagerDutyConfigurator:
 
 def main():
     print("=" * 60)
-    print("  ULTIMATE AUTO-CONFIGURATION SCRIPT")
+    print("  FINAL INSTALLER - MOVEIT MONITORING")
     print("  Targets: MOVITAUTO, MOVEITXFR")
     print("  Alerts: CPU >85%, Memory >85%, VM Stopped")
     print("=" * 60)
     
-    print("\nDATADOG CREDENTIALS (Required)")
-    datadog_api_key = input("Datadog API Key: ").strip()
-    datadog_app_key = input("Datadog Application Key: ").strip()
+    datadog_api_key = "$($DATADOG_API_KEY)"
+    datadog_app_key = "$($DATADOG_APP_KEY)"
+    pagerduty_routing_key = "$($PAGERDUTY_ROUTING_KEY)"
+    webhook_url = "$($WEBHOOK_URL)"
     
-    print("\nPAGERDUTY CREDENTIALS (Required)")
-    pagerduty_routing_key = input("PagerDuty Routing Key: ").strip()
-    
-    print("\nWEBHOOK SERVICE (Required)")
-    webhook_url = input("Webhook URL: ").strip()
-    
-    if not all([datadog_api_key, datadog_app_key, pagerduty_routing_key, webhook_url]):
-        print("\nError: All fields are required!")
-        sys.exit(1)
-    
-    print("\n" + "=" * 60)
-    print("Starting configuration for:")
-    for vm in TARGET_VMS:
-        print("  " + vm + ": CPU, Memory, VM Stopped alerts")
-    print("=" * 60)
-    
-    confirm = input("\nProceed? (yes/no): ").strip().lower()
-    if confirm != 'yes':
-        print("Configuration cancelled.")
-        sys.exit(0)
+    print("\nUsing provided credentials...")
+    print("Datadog API Key: " + datadog_api_key[:10] + "...")
+    print("Webhook URL: " + webhook_url)
     
     datadog = DatadogConfigurator(datadog_api_key, datadog_app_key, webhook_url)
     pagerduty = PagerDutyConfigurator(pagerduty_routing_key)
@@ -339,9 +323,8 @@ if __name__ == "__main__":
     except Exception as e:
         print("\nFATAL ERROR: " + str(e))
         sys.exit(1)
-'@
-
-$scriptPath = "ultimate_auto_configure.py"
+"@
+$scriptPath = "final_installer_config.py"
 $scriptContent | Out-File -FilePath $scriptPath -Encoding UTF8 -Force
 Write-Host "Configuration script created: $scriptPath" -ForegroundColor Green
 
@@ -351,7 +334,6 @@ Write-Host "STEP 4: Running Configuration" -ForegroundColor Yellow
 Write-Host ""
 Write-Host "Starting configuration process..." -ForegroundColor Cyan
 Write-Host ""
-
 try {
     & python $scriptPath
     $exitCode = $LASTEXITCODE
