@@ -1,58 +1,67 @@
-import azure.mgmt.compute
-import datadog
-import pagerduty
+import requests
+import json
 
-# Initialize Azure Connector
-azure_client = azure.mgmt.compute.ComputeManagementClient(credentials, subscription_id)
+class AzureConnector:
+    def __init__(self, azure_credentials):
+        self.azure_credentials = azure_credentials
 
-# Datadog Configuration
-api_key = 'YOUR_DATADOG_API_KEY'
-app_key = 'YOUR_DATADOG_APP_KEY'
-datadog.initialize(api_key=api_key, app_key=app_key)
+    def get_vm_metrics(self, vm_name):
+        # Implement Azure SDK call to retrieve VM metrics
+        pass
 
-# Function to create CPU usage monitor
-def create_cpu_monitor(vm_name):
-    return datadog.api.Monitor.create(  
-        type='metric alert',  
-        query='avg:system.cpu.idle{{host:{}}} < 15'.format(vm_name),  
-        name='CPU Usage Alert for {}'.format(vm_name),  
-        message='CPU usage above 85% on {}'.format(vm_name),  
-        tags=['movit_auto', 'cpu_alert'],  
-        options={'thresholds': {'critical': 85}}  
-    )
+class DatadogConfigurator:
+    def __init__(self, api_key):
+        self.api_key = api_key
 
-# Function to create Memory usage monitor
+    def create_monitor(self, monitor_config):
+        # Implement API call to Datadog to create a new monitor
+        headers = {'Content-Type': 'application/json', 'DD-API-KEY': self.api_key}
+        response = requests.post('https://api.datadoghq.com/api/v1/series', headers=headers, data=json.dumps(monitor_config))
+        return response
 
-def create_memory_monitor(vm_name):
-    return datadog.api.Monitor.create(  
-        type='metric alert',  
-        query='avg:system.mem.used{{host:{}}} / avg:system.mem.total{{host:{}}} > 0.85'.format(vm_name, vm_name),  
-        name='Memory Usage Alert for {}'.format(vm_name),  
-        message='Memory usage above 85% on {}'.format(vm_name),  
-        tags=['movit_auto', 'memory_alert'],  
-        options={'thresholds': {'critical': 85}}  
-    )
+class PagerDutyConfigurator:
+    def __init__(self, api_key):
+        self.api_key = api_key
 
-# Function to create VM Stopped monitor
+    def create_webhook(self, webhook_config):
+        # Implement API call to PagerDuty to create a new webhook
+        headers = {'Authorization': f'Token token={self.api_key}', 'Content-Type': 'application/json'}
+        response = requests.post('https://api.pagerduty.com/webhooks', headers=headers, data=json.dumps(webhook_config))
+        return response
 
-def create_vm_stopped_monitor(vm_name):
-    return datadog.api.Monitor.create(  
-        type='service check',  
-        query='service_check.vm.status{{host:{}}} == 0'.format(vm_name),  
-        name='VM Stopped Alert for {}'.format(vm_name),  
-        message='{} is stopped'.format(vm_name),  
-        tags=['movit_auto', 'vm_stopped_alert']  
-    )
+class WebhookServiceManager:
+    def __init__(self, webhook_url):
+        self.webhook_url = webhook_url
 
-# Target VMs
-vms = ['MOVITAUTO', 'MOVEITXFR']
-monitors = []
+    def send_alert(self, message):
+        # Implement sending alert to the webhook URL
+        requests.post(self.webhook_url, json={'text': message})
 
-# Creating monitors for each VM
-for vm in vms:
-    monitors.append(create_cpu_monitor(vm))
-    monitors.append(create_memory_monitor(vm))
-    monitors.append(create_vm_stopped_monitor(vm))
+class UltimateConfigurator:
+    def __init__(self, azure_connector, datadog_configurator, pagerduty_configurator, webhook_service_manager):
+        self.azure_connector = azure_connector
+        self.datadog_configurator = datadog_configurator
+        self.pagerduty_configurator = pagerduty_configurator
+        self.webhook_service_manager = webhook_service_manager
 
-# Note: PagerDuty integration and webhook service manager configuration would go here.
-# For this implementation, we will focus on the Datadog part.
+    def configure_monitors(self, vm_names):
+        for vm_name in vm_names:
+            # Create Datadog monitors for CPU and Memory usage
+            cpu_monitor_config = {'name': f'CPU Usage - {vm_name}', 'query': f'avg(last_5m):avg:azure.vm.cpu_usage{{vm_name:{vm_name}}} > 85', 'message': f'CPU usage exceeded 85% for {vm_name}', 'type': 'metric', 'options': {'thresholds': {'critical': 85}}}
+            memory_monitor_config = {'name': f'Memory Usage - {vm_name}', 'query': f'avg(last_5m):avg:azure.vm.memory_usage{{vm_name:{vm_name}}} > 85', 'message': f'Memory usage exceeded 85% for {vm_name}', 'type': 'metric', 'options': {'thresholds': {'critical': 85}}}
+            self.datadog_configurator.create_monitor(cpu_monitor_config)
+            self.datadog_configurator.create_monitor(memory_monitor_config)
+
+            # Create webhook for VM stopped alert
+            webhook_config = {'name': f'VM Stopped - {vm_name}', 'url': self.webhook_service_manager.webhook_url}
+            self.pagerduty_configurator.create_webhook(webhook_config)
+
+# Example of how to use these classes
+if __name__ == '__main__':
+    azure_connector = AzureConnector(azure_credentials='YourAzureCredentials')
+    datadog_configurator = DatadogConfigurator(api_key='YourDatadogAPIKey')
+    pagerduty_configurator = PagerDutyConfigurator(api_key='YourPagerDutyAPIKey')
+    webhook_service_manager = WebhookServiceManager(webhook_url='YourWebhookURL')
+    configurator = UltimateConfigurator(azure_connector, datadog_configurator, pagerduty_configurator, webhook_service_manager)
+
+    configurator.configure_monitors(vm_names=['MOVITAUTO', 'MOVEITXFR'])
