@@ -190,7 +190,7 @@ class DatadogConfigurator:
         monitor_payload = {
             "name": "MoveIT VM Stopped - " + hostname,
             "type": "service check",
-            "query": '"datadog.agent.up".over("host:" + hostname + '").by("*").last(2).count_by_status()',
+            "query": '"datadog.agent.up".over("host:' + hostname + '").by("*").last(2).count_by_status()',
             "message": "@webhook-" + self.webhook_name + " VM STOPPED: " + hostname,
             "tags": ["host:" + hostname, "alert_type:vm_stopped", "service:moveit"],
             "priority": 1,
@@ -252,6 +252,7 @@ class PagerDutyConfigurator:
         except Exception as e:
             print("Error: " + str(e))
             return False
+
 
 def main():
     print("=" * 60)
@@ -320,7 +321,7 @@ if __name__ == "__main__":
     except Exception as e:
         print("\nFATAL ERROR: " + str(e))
         sys.exit(1)
-"@;
+"@ 
 $scriptPath = "ultimate_auto_configure.py"
 $scriptContent | Out-File -FilePath $scriptPath -Encoding UTF8 -Force
 Write-Host "Configuration script created: $scriptPath" -ForegroundColor Green
@@ -340,12 +341,12 @@ try {
         Write-Host "================================================================" -ForegroundColor Green
         Write-Host "  ALL DONE! CONFIGURATION SUCCESSFUL!" -ForegroundColor Green
         Write-Host "================================================================" -ForegroundColor Green
-        Write-Host ""
+        Write-Host "" 
         Write-Host "Next steps:" -ForegroundColor Cyan
         Write-Host "  1. Check Datadog for monitors" -ForegroundColor Gray
         Write-Host "  2. Check PagerDuty for test alert" -ForegroundColor Gray
         Write-Host "  3. Alerts are now active for MOVITAUTO and MOVEITXFR" -ForegroundColor Gray
-        Write-Host ""
+        Write-Host "" 
     } else {
         Write-Host "Configuration completed with errors. Review output above." -ForegroundColor Yellow
     }
