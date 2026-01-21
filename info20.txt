@@ -1,0 +1,11 @@
+RUN FIRST:  Databricks_Audit_Report_Version3.ps1
+            ↓
+            (Review HTML report)
+            ↓
+RUN SECOND: SQL_Database_DTU_Optimization_Version4.ps1 -AnalyzeOnly
+            ↓
+            (Review HTML report)
+            ↓
+            (Get approval from leadership)
+            ↓
+RUN THIRD:  SQL_Database_DTU_Optimization_Version4.ps1 -AutoOptimize
