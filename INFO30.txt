@@ -1,0 +1,6 @@
+.\Verify-DatadogAgent.ps1
+.\Fix-DatadogHostname.ps1 -NewHostname 'vm-moveit-xfr'
+
+
+.\Verify-DatadogAgent.ps1
+.\Fix-DatadogHostname.ps1 -NewHostname 'vm-moveit-auto'
