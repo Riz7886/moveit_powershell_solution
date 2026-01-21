@@ -71,7 +71,7 @@ function Invoke-DatabricksApi {
         return $response
     }
     catch {
-        Write-Warning "API call failed for $Endpoint: $_"
+        Write-Warning "API call failed for $Endpoint : $_"
         return $null
     }
 }
