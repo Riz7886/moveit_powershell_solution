@@ -1,0 +1,5 @@
+$token = Read-Host "Paste your pyx-warehouse-prod PAT"
+$url = "https://adb-2758318924173706.6.azuredatabricks.net"
+$h = @{"Authorization"="Bearer $token";"Content-Type"="application/json"}
+$r = Invoke-RestMethod -Uri "$url/api/2.0/sql/warehouses" -Headers $h
+foreach($wh in $r.warehouses){ $s=($wh.warehouse_type -eq "TYPE_SERVERLESS") -or ($wh.enable_serverless_compute -eq $true); if($s){ $b=@{id=$wh.id;name=$wh.name;cluster_size=$wh.cluster_size;warehouse_type="PRO";enable_serverless_compute=$false}|ConvertTo-Json -Depth 5; Invoke-RestMethod -Uri "$url/api/2.0/sql/warehouses/$($wh.id)/edit" -Headers $h -Method Post -Body $b|Out-Null; Write-Host "FIXED: $($wh.name)" -ForegroundColor Green}else{Write-Host "OK: $($wh.name)" -ForegroundColor Gray}}
