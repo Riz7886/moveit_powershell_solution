@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Databricks Serverless Fix - Incident Report</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c0e12;
+    --surface: #14171e;
+    --surface2: #1a1e27;
+    --border: #2a2f3a;
+    --text: #d0d4dc;
+    --muted: #6b7280;
+    --bright: #f0f2f5;
+    --accent: #e85400;
+    --green: #22c55e;
+    --red: #ef4444;
+    --yellow: #eab308;
+    --blue: #3b82f6;
+    --purple: #a855f7;
+    --mono: 'JetBrains Mono', monospace;
+    --serif: 'Source Serif 4', Georgia, serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: var(--serif); font-size: 16px; line-height: 1.7; }
+
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(12,14,18,0.95); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 40px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 14px; }
+  .topbar-logo {
+    width: 28px; height: 28px; background: var(--accent); border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-weight: 700; font-size: 14px; color: white;
+  }
+  .topbar-title { font-family: var(--mono); font-size: 13px; color: var(--muted); letter-spacing: 0.5px; }
+  .topbar-badge {
+    font-family: var(--mono); font-size: 11px; padding: 4px 10px; border-radius: 4px;
+    letter-spacing: 0.5px;
+  }
+  .badge-green-glow { background: #22c55e18; color: var(--green); border: 1px solid #22c55e33; }
+
+  .hero {
+    padding: 80px 40px 60px; max-width: 960px; margin: 0 auto; position: relative;
+  }
+  .hero::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 300px;
+    background: radial-gradient(ellipse at 30% 0%, #e8540015 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-label {
+    font-family: var(--mono); font-size: 12px; color: var(--accent);
+    letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px; position: relative;
+  }
+  .hero h1 {
+    font-family: var(--serif); font-size: 36px; font-weight: 700;
+    color: var(--bright); line-height: 1.25; margin-bottom: 20px; position: relative;
+  }
+  .hero-summary { font-size: 18px; color: var(--muted); max-width: 700px; position: relative; }
+
+  .meta-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+    background: var(--border); border: 1px solid var(--border); border-radius: 8px;
+    overflow: hidden; max-width: 960px; margin: 0 auto 60px;
+  }
+  .meta-cell { background: var(--surface); padding: 20px 24px; }
+  .meta-label {
+    font-family: var(--mono); font-size: 10px; color: var(--muted);
+    letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px;
+  }
+  .meta-value { font-family: var(--mono); font-size: 14px; color: var(--bright); font-weight: 600; }
+  .meta-value.red { color: var(--red); }
+  .meta-value.green { color: var(--green); }
+
+  .content { max-width: 960px; margin: 0 auto; padding: 0 40px 80px; }
+
+  .section { margin-bottom: 56px; }
+  .section-num {
+    font-family: var(--mono); font-size: 11px; color: var(--accent);
+    letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px;
+  }
+  .section h2 {
+    font-family: var(--serif); font-size: 24px; font-weight: 700;
+    color: var(--bright); margin-bottom: 20px; padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section p { margin-bottom: 16px; }
+
+  .error-box {
+    background: #ef444412; border: 1px solid #ef444433; border-left: 4px solid var(--red);
+    border-radius: 6px; padding: 18px 22px; margin: 20px 0;
+    font-family: var(--mono); font-size: 13px; color: #fca5a5; line-height: 1.6;
+  }
+  .warn-box {
+    background: #eab30812; border: 1px solid #eab30833; border-left: 4px solid var(--yellow);
+    border-radius: 6px; padding: 18px 22px; margin: 20px 0; font-size: 14px; color: #fde68a;
+  }
+  .warn-box strong { font-family: var(--mono); font-size: 12px; color: var(--yellow); }
+  .info-box {
+    background: #3b82f612; border: 1px solid #3b82f633; border-left: 4px solid var(--blue);
+    border-radius: 6px; padding: 18px 22px; margin: 20px 0; font-size: 14px; color: #93c5fd;
+  }
+  .success-box {
+    background: #22c55e12; border: 1px solid #22c55e33; border-left: 4px solid var(--green);
+    border-radius: 6px; padding: 18px 22px; margin: 20px 0; font-size: 14px; color: #86efac;
+  }
+  .success-box strong { font-family: var(--mono); font-size: 12px; color: var(--green); }
+  .purple-box {
+    background: #a855f712; border: 1px solid #a855f733; border-left: 4px solid var(--purple);
+    border-radius: 6px; padding: 18px 22px; margin: 20px 0; font-size: 14px; color: #d8b4fe;
+  }
+  .purple-box strong { font-family: var(--mono); font-size: 12px; color: var(--purple); }
+
+  .table-wrap {
+    border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin: 24px 0;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  thead { background: var(--surface); }
+  th {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--muted); padding: 14px 18px;
+    text-align: left; font-weight: 600; border-bottom: 1px solid var(--border);
+  }
+  td { padding: 14px 18px; border-bottom: 1px solid var(--border); }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--surface); }
+
+  .badge {
+    display: inline-block; font-family: var(--mono); font-size: 11px;
+    font-weight: 600; padding: 3px 9px; border-radius: 4px; letter-spacing: 0.3px;
+  }
+  .b-red { background: #ef444418; color: var(--red); border: 1px solid #ef444433; }
+  .b-yellow { background: #eab30818; color: var(--yellow); border: 1px solid #eab30833; }
+  .b-green { background: #22c55e18; color: var(--green); border: 1px solid #22c55e33; }
+  .b-blue { background: #3b82f618; color: var(--blue); border: 1px solid #3b82f633; }
+  .b-purple { background: #a855f718; color: var(--purple); border: 1px solid #a855f733; }
+
+  .root-cause-card {
+    background: var(--surface); border: 2px solid var(--red); border-radius: 10px;
+    padding: 30px; margin: 24px 0;
+    background: linear-gradient(135deg, var(--surface) 0%, #ef444408 100%);
+  }
+  .root-cause-card h3 {
+    font-family: var(--mono); font-size: 16px; color: var(--red);
+    margin-bottom: 16px; display: flex; align-items: center; gap: 10px;
+  }
+  .root-cause-card p { font-size: 15px; margin-bottom: 14px; }
+  .root-cause-card .detail {
+    font-family: var(--mono); font-size: 13px; color: var(--muted);
+    padding: 10px 14px; background: #0a0c10; border-radius: 6px;
+    margin: 12px 0; border: 1px solid var(--border);
+  }
+  .root-cause-card .detail strong { color: var(--bright); }
+
+  .compliance-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 24px 0;
+  }
+  .compliance-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 22px;
+  }
+  .compliance-card h4 {
+    font-family: var(--mono); font-size: 13px; color: var(--bright); margin-bottom: 8px;
+  }
+  .compliance-card p { font-size: 14px; color: var(--muted); margin-bottom: 0; line-height: 1.6; }
+
+  .fix-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; margin: 20px 0; overflow: hidden;
+  }
+  .fix-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 22px; border-bottom: 1px solid var(--border); background: var(--surface2);
+  }
+  .fix-title { font-family: var(--mono); font-size: 15px; font-weight: 700; color: var(--bright); }
+  .fix-body { padding: 22px; }
+  .fix-body p { margin-bottom: 14px; font-size: 15px; }
+
+  .code-block {
+    background: #0a0c10; border: 1px solid var(--border); border-radius: 6px;
+    padding: 18px 20px; margin: 16px 0; overflow-x: auto;
+  }
+  .code-block code {
+    font-family: var(--mono); font-size: 13px; color: #a5b4c8; line-height: 1.7; white-space: pre;
+  }
+  .cm { color: #4b5563; }
+  .cmd { color: var(--green); }
+  .val { color: var(--accent); }
+
+  .steps { counter-reset: step; margin: 20px 0; }
+  .step { counter-increment: step; display: flex; gap: 18px; margin-bottom: 22px; align-items: flex-start; }
+  .step::before {
+    content: counter(step); flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%;
+    background: #e8540015; border: 1px solid #e8540044; color: var(--accent);
+    font-family: var(--mono); font-size: 13px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step-content h4 { font-family: var(--mono); font-size: 14px; color: var(--bright); margin-bottom: 6px; }
+  .step-content p { font-size: 14px; color: var(--muted); margin-bottom: 0; }
+
+  .checklist { margin: 24px 0; }
+  .chk { display: flex; align-items: flex-start; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+  .chk:last-child { border-bottom: none; }
+  .chk-box {
+    flex-shrink: 0; width: 22px; height: 22px; border: 2px solid var(--border);
+    border-radius: 5px; margin-top: 2px;
+  }
+  .chk.done .chk-box { background: var(--green); border-color: var(--green); position: relative; }
+  .chk.done .chk-box::after {
+    content: 'x'; position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 13px; font-weight: 700;
+  }
+  .chk-text { font-size: 14px; }
+  .chk-text strong { color: var(--bright); }
+
+  .flow-diagram {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    padding: 30px; margin: 24px 0; display: flex; align-items: center;
+    justify-content: center; gap: 12px; flex-wrap: wrap;
+  }
+  .flow-box {
+    font-family: var(--mono); font-size: 12px; padding: 10px 16px;
+    border-radius: 6px; text-align: center; font-weight: 600;
+  }
+  .flow-box.problem { background: #ef444418; color: var(--red); border: 1px solid #ef444433; }
+  .flow-box.cause { background: #a855f718; color: var(--purple); border: 1px solid #a855f733; }
+  .flow-box.action { background: #3b82f618; color: var(--blue); border: 1px solid #3b82f633; }
+  .flow-box.result { background: #22c55e18; color: var(--green); border: 1px solid #22c55e33; }
+  .flow-arrow { color: var(--muted); font-family: var(--mono); font-size: 18px; }
+
+  .quote-card {
+    background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--blue);
+    border-radius: 8px; padding: 22px; margin: 24px 0;
+  }
+  .quote-card .quote-from {
+    font-family: var(--mono); font-size: 12px; color: var(--blue); margin-bottom: 10px;
+    letter-spacing: 0.5px;
+  }
+  .quote-card p { font-size: 15px; color: var(--text); margin-bottom: 0; font-style: italic; }
+
+  .footer {
+    border-top: 1px solid var(--border); padding: 30px 40px; text-align: center;
+    font-family: var(--mono); font-size: 12px; color: var(--muted);
+  }
+
+  @media print {
+    body { background: white; color: #1a1a1a; }
+    .topbar { position: static; background: white; border-color: #ddd; }
+    .hero::before { display: none; }
+    h1, h2, h3, .meta-value, .fix-title, .step-content h4, .compliance-card h4 { color: #111; }
+    .meta-cell, thead, .fix-header { background: #f5f5f5; }
+    .table-wrap, .fix-card, .compliance-card, .code-block, .root-cause-card { border-color: #ddd; }
+  }
+  @media (max-width: 700px) {
+    .meta-grid { grid-template-columns: 1fr 1fr; }
+    .compliance-grid { grid-template-columns: 1fr; }
+    .hero { padding: 50px 20px 40px; }
+    .hero h1 { font-size: 28px; }
+    .content { padding: 0 20px 60px; }
+    .topbar { padding: 12px 20px; }
+    .flow-diagram { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-logo">D</div>
+    <span class="topbar-title">INCIDENT REPORT - DATABRICKS SQL WAREHOUSES</span>
+  </div>
+  <span class="topbar-badge badge-green-glow">ROOT CAUSE CONFIRMED + FIX INCLUDED</span>
+</div>
+
+<div class="hero">
+  <div class="hero-label">Incident Report INC-2025-0203</div>
+  <h1>Serverless SQL Warehouses Blocked by HIPAA/HITRUST Compliance Profile</h1>
+  <p class="hero-summary">
+    The Enhanced Security and Compliance add-on with HIPAA/HITRUST profiles was enabled
+    on workspace <strong>pyxlake-databricks</strong>, which permanently disables serverless
+    compute. This report documents the confirmed root cause, impact, and automated fix.
+  </p>
+</div>
+
+<div class="meta-grid">
+  <div class="meta-cell">
+    <div class="meta-label">Severity</div>
+    <div class="meta-value red">HIGH - P2</div>
+  </div>
+  <div class="meta-cell">
+    <div class="meta-label">Root Cause</div>
+    <div class="meta-value">HIPAA/HITRUST</div>
+  </div>
+  <div class="meta-cell">
+    <div class="meta-label">Workspace</div>
+    <div class="meta-value">pyxlake-databricks</div>
+  </div>
+  <div class="meta-cell">
+    <div class="meta-label">Fix</div>
+    <div class="meta-value green">Serverless to PRO</div>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- 1: Error -->
+  <div class="section">
+    <div class="section-num">01 - Error</div>
+    <h2>What Is Happening</h2>
+    <p>
+      When attempting to start any serverless SQL warehouse in the Databricks workspace
+      <strong>pyxlake-databricks</strong> at
+      <code>adb-3248848193480666.6.azuredatabricks.net</code>, the following error appears:
+    </p>
+    <div class="error-box">
+      Error while starting SQL warehouse.
+      Cannot start warehouse "Warehouse" with Serverless Compute since workspace is no
+      longer eligible for Serverless Compute. To use the warehouse, please contact
+      your administrator.
+    </div>
+    <p>
+      Both serverless SQL warehouses are stuck in a Stopped state. Users depending on
+      these warehouses for Salesforce data queries, dashboards, and BI tools are blocked.
+    </p>
+  </div>
+
+  <!-- 2: Root Cause -->
+  <div class="section">
+    <div class="section-num">02 - Root Cause (Confirmed)</div>
+    <h2>Why This Is Happening</h2>
+
+    <div class="root-cause-card">
+      <h3>CONFIRMED: HIPAA/HITRUST Compliance Profile Blocks Serverless</h3>
+      <p>
+        The workspace <strong>pyxlake-databricks</strong> has the Enhanced Security and
+        Compliance add-on enabled with <strong>HIPAA, HITRUST</strong> compliance standards
+        selected. This compliance profile requires strict data isolation that the serverless
+        compute plane does not meet or is not yet validated for.
+      </p>
+      <div class="detail">
+        <strong>Workspace:</strong> pyxlake-databricks<br>
+        <strong>Tenant:</strong> Pyx Applications Tenant (supportpyxhealth.on...)<br>
+        <strong>Compliance Profile:</strong> Enabled (cannot be disabled)<br>
+        <strong>Compliance Standards:</strong> HIPAA, HITRUST<br>
+        <strong>Effect:</strong> Serverless compute permanently blocked for this workspace
+      </div>
+      <p>
+        This is a <strong>permanent, non-reversible change</strong> at the workspace level.
+        Once the compliance security profile is enabled, it cannot be removed, effectively
+        locking out serverless options for that workspace.
+      </p>
+    </div>
+
+    <div class="quote-card">
+      <div class="quote-from">John Pinto - 11:22 AM, Feb 3, 2025</div>
+      <p>
+        "The issue is that Serverless is not an option with HIPAA/HITRUST security enabled.
+        I believe we need to flip the SQL connection from serverless (less secure option) to PRO."
+      </p>
+    </div>
+
+    <div class="flow-diagram">
+      <div class="flow-box cause">HIPAA/HITRUST<br>Compliance Enabled</div>
+      <div class="flow-arrow">--></div>
+      <div class="flow-box problem">Serverless Compute<br>Permanently Blocked</div>
+      <div class="flow-arrow">--></div>
+      <div class="flow-box action">Convert Warehouses<br>to PRO Type</div>
+      <div class="flow-arrow">--></div>
+      <div class="flow-box result">Warehouses Can<br>Start Again</div>
+    </div>
+  </div>
+
+  <!-- 3: Compliance Details -->
+  <div class="section">
+    <div class="section-num">03 - Compliance Restrictions</div>
+    <h2>Why Compliance Blocks Serverless</h2>
+    <p>
+      Enabling enhanced security and compliance (including PCI-DSS or HIPAA profiles)
+      in Databricks restricts access to serverless compute because compliance settings
+      require strict data isolation that the serverless compute plane does not meet or
+      is not yet validated for.
+    </p>
+    <div class="compliance-grid">
+      <div class="compliance-card">
+        <h4>Compliance Lock</h4>
+        <p>Once the compliance security profile is enabled, it cannot be removed. This
+        permanently locks out serverless options for the workspace.</p>
+      </div>
+      <div class="compliance-card">
+        <h4>Impacted Features</h4>
+        <p>Features requiring serverless compute, such as certain SQL Warehouses, are not
+        available or fully supported under strict compliance profiles like PCI-DSS and HIPAA.</p>
+      </div>
+      <div class="compliance-card">
+        <h4>Workload Isolation Strategy</h4>
+        <p>Databricks recommends using separate non-compliant workspaces for tasks requiring
+        serverless, and a secured compliant workspace for sensitive data.</p>
+      </div>
+      <div class="compliance-card">
+        <h4>Alternative Compute</h4>
+        <p>Within the compliant environment, you can use Classic or Pro compute options,
+        cluster pools, or single-node clusters instead of serverless.</p>
+      </div>
+    </div>
+
+    <div class="warn-box">
+      <strong>PERMANENT RESTRICTION</strong><br>
+      To re-enable serverless, a new, non-compliant workspace must be created.
+      The compliance profile on pyxlake-databricks cannot be removed or changed.
+    </div>
+  </div>
+
+  <!-- 4: Azure Settings -->
+  <div class="section">
+    <div class="section-num">04 - Azure Configuration</div>
+    <h2>Workspace Security Settings</h2>
+    <p>
+      The following was observed on the Azure Portal under
+      <strong>pyxlake-databricks | Security and compliance</strong>:
+    </p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Setting</th><th>Value</th><th>Can Change?</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Enable compliance security profile</strong></td>
+            <td><span class="badge b-red">Enabled (checked)</span></td>
+            <td><span class="badge b-red">NO - Cannot be disabled</span></td>
+          </tr>
+          <tr>
+            <td><strong>Select compliance standards</strong></td>
+            <td><span class="badge b-purple">HIPAA, HITRUST</span></td>
+            <td><span class="badge b-red">Locked</span></td>
+          </tr>
+          <tr>
+            <td>Enable enhanced security monitoring</td>
+            <td><span class="badge b-green">Enabled (checked)</span></td>
+            <td>Yes</td>
+          </tr>
+          <tr>
+            <td>Enable automatic cluster update</td>
+            <td><span class="badge b-green">Enabled (checked)</span></td>
+            <td>Yes</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      Other workspaces in the same tenant that were visible:
+      <strong>pys-warehouse-prod</strong>, <strong>pys-warehouse-prbd</strong>,
+      <strong>pyxlake-databricks</strong>.
+    </p>
+  </div>
+
+  <!-- 5: Affected Warehouses -->
+  <div class="section">
+    <div class="section-num">05 - Affected Resources</div>
+    <h2>Affected SQL Warehouses</h2>
+    <p>
+      Only the serverless-typed warehouses are affected. All other workspace resources
+      (clusters, jobs, notebooks, classic warehouses) continue to work normally.
+    </p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Warehouse</th><th>Size</th><th>Type</th><th>Active / Max</th><th>State</th><th>Created By</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Starter Endpoint</strong></td>
+            <td>Small</td>
+            <td><span class="badge b-green">Classic</span></td>
+            <td>0 / 1</td>
+            <td>Stopped (can start)</td>
+            <td>-</td>
+          </tr>
+          <tr>
+            <td><strong>salesforce</strong></td>
+            <td>2X-Small</td>
+            <td><span class="badge b-red">Serverless</span></td>
+            <td>0 / 3</td>
+            <td><span class="badge b-red">CANNOT START</span></td>
+            <td>manas.reddy@synhealth.com</td>
+          </tr>
+          <tr>
+            <td><strong>Warehouse</strong></td>
+            <td>2X-Small</td>
+            <td><span class="badge b-red">Serverless</span></td>
+            <td>0 / 1</td>
+            <td><span class="badge b-red">CANNOT START</span></td>
+            <td>manas.reddy@synhealth.com</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 6: The Fix -->
+  <div class="section">
+    <div class="section-num">06 - The Fix</div>
+    <h2>Convert Serverless Warehouses to PRO</h2>
+
+    <p>
+      Since the compliance profile is permanent and cannot be removed, the fix is to
+      convert the two broken Serverless warehouses to <strong>PRO</strong> type. This is
+      exactly what John Pinto recommended. PRO warehouses are fully supported under
+      HIPAA/HITRUST compliance and provide excellent query performance.
+    </p>
+
+    <div class="fix-card">
+      <div class="fix-header">
+        <span class="fix-title">Convert Serverless to PRO</span>
+        <span class="badge b-green">Approved Fix</span>
+      </div>
+      <div class="fix-body">
+        <p>This changes <strong>only two fields</strong> on each warehouse. Everything
+        else stays exactly the same:</p>
+        <div class="checklist">
+          <div class="chk done"><div class="chk-box"></div><div class="chk-text">Changes <strong>warehouse_type</strong> from TYPE_SERVERLESS to PRO</div></div>
+          <div class="chk done"><div class="chk-box"></div><div class="chk-text">Changes <strong>enable_serverless_compute</strong> from true to false</div></div>
+          <div class="chk done"><div class="chk-box"></div><div class="chk-text">Keeps warehouse <strong>name, size, auto_stop, cluster count, tags</strong> unchanged</div></div>
+          <div class="chk done"><div class="chk-box"></div><div class="chk-text">Does <strong>NOT</strong> delete, recreate, or restart any warehouse</div></div>
+          <div class="chk done"><div class="chk-box"></div><div class="chk-text">Does <strong>NOT</strong> touch clusters, jobs, notebooks, or any other resource</div></div>
+          <div class="chk done"><div class="chk-box"></div><div class="chk-text">PRO warehouses are <strong>fully compliant</strong> with HIPAA/HITRUST</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Warehouse</th><th>Field</th><th>Before</th><th>After</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td rowspan="2"><strong>salesforce</strong></td>
+            <td>warehouse_type</td>
+            <td><span class="badge b-red">TYPE_SERVERLESS</span></td>
+            <td><span class="badge b-green">PRO</span></td>
+          </tr>
+          <tr>
+            <td>enable_serverless_compute</td>
+            <td><span class="badge b-red">true</span></td>
+            <td><span class="badge b-green">false</span></td>
+          </tr>
+          <tr>
+            <td rowspan="2"><strong>Warehouse</strong></td>
+            <td>warehouse_type</td>
+            <td><span class="badge b-red">TYPE_SERVERLESS</span></td>
+            <td><span class="badge b-green">PRO</span></td>
+          </tr>
+          <tr>
+            <td>enable_serverless_compute</td>
+            <td><span class="badge b-red">true</span></td>
+            <td><span class="badge b-green">false</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="success-box">
+      <strong>AFTER THE FIX</strong><br>
+      Both warehouses will be PRO type and can start immediately. PRO warehouses work
+      perfectly under HIPAA/HITRUST compliance. No other settings are touched.
+    </div>
+  </div>
+
+  <!-- 7: Automated Script -->
+  <div class="section">
+    <div class="section-num">07 - Automated Script</div>
+    <h2>One-Command Fix</h2>
+    <p>
+      An automated bash script (<strong>fix_serverless_warehouses.sh</strong>) is included
+      with this report. It handles everything automatically:
+    </p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-content">
+          <h4>Auto-connects to Azure</h4>
+          <p>Uses Azure CLI to log in and detect the active subscription.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-content">
+          <h4>Finds the Databricks workspace automatically</h4>
+          <p>Lists all workspaces in the subscription. Auto-selects if only one exists.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-content">
+          <h4>Gets API token automatically</h4>
+          <p>Uses Azure CLI to generate a Databricks token. No PAT needed.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-content">
+          <h4>Identifies broken serverless warehouses</h4>
+          <p>Lists all SQL warehouses and flags which ones are serverless.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-content">
+          <h4>Converts Serverless to PRO</h4>
+          <p>Changes only the type fields. Preserves everything else.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-content">
+          <h4>Verifies the fix</h4>
+          <p>Re-lists all warehouses to confirm no serverless types remain.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="code-block"><code><span class="cmd">chmod</span> +x fix_serverless_warehouses.sh
+<span class="cmd">./fix_serverless_warehouses.sh</span></code></div>
+
+    <div class="info-box">
+      The script requires Azure CLI (az) and Python 3. It uses your Azure login to
+      automatically get a Databricks API token, so no Personal Access Token is needed.
+    </div>
+  </div>
+
+  <!-- 8: Long-Term -->
+  <div class="section">
+    <div class="section-num">08 - Long-Term Recommendations</div>
+    <h2>Going Forward</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-content">
+          <h4>Run the script now to unblock users</h4>
+          <p>Execute fix_serverless_warehouses.sh to convert the two warehouses to PRO immediately.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-content">
+          <h4>Use PRO warehouses in this workspace going forward</h4>
+          <p>Since the HIPAA/HITRUST compliance profile is permanent, always create new
+          SQL warehouses as PRO or Classic type in pyxlake-databricks.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-content">
+          <h4>Consider workload isolation for serverless needs</h4>
+          <p>If serverless compute is needed for non-sensitive workloads, create a
+          separate non-compliant workspace without the compliance profile enabled.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-content">
+          <h4>Document the restriction</h4>
+          <p>Add a note in team documentation that pyxlake-databricks does not support
+          serverless compute due to HIPAA/HITRUST compliance. This prevents future
+          team members from accidentally creating serverless warehouses.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="purple-box">
+      <strong>COMPLIANCE NOTE</strong><br>
+      The HIPAA/HITRUST compliance profile on pyxlake-databricks is permanent and
+      correct for handling protected health information. The fix (converting to PRO)
+      maintains full compliance. Do not attempt to disable the compliance profile or
+      create workarounds that bypass HIPAA/HITRUST requirements.
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  Generated 2025-02-03 | Databricks Serverless SQL Warehouse Incident Report | INC-2025-0203 |
+  Root Cause: HIPAA/HITRUST Compliance Profile | Fix: Serverless to PRO
+</div>
+
+</body>
+</html>
