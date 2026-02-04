@@ -1,0 +1,19 @@
+Write-Host "=== QUICK SQL SERVER DIAGNOSTIC ===" -ForegroundColor Cyan
+
+# Check what subscription you're on
+$current = az account show -o json 2>$null | ConvertFrom-Json
+Write-Host "Current sub: $($current.name) [$($current.id)]" -ForegroundColor Green
+
+# List all subs and try sql server list on each one WITH errors visible
+$subs = az account list --query "[?tenantId=='8ef3d734-3ca5-4493-8d8b-52b2c54eab04' && state=='Enabled']" -o json 2>$null | ConvertFrom-Json
+
+foreach ($s in $subs) {
+    Write-Host "`nSub: $($s.name)" -ForegroundColor Yellow
+    az account set --subscription $s.id
+    # Show errors instead of hiding them
+    $result = az sql server list --subscription $s.id -o table 2>&1
+    Write-Host $result -ForegroundColor White
+}
+
+Write-Host "`n=== Also try resource search ===" -ForegroundColor Cyan
+az graph query -q "Resources | where type =~ 'Microsoft.Sql/servers' | project name, resourceGroup, subscriptionId" -o table 2>&1
