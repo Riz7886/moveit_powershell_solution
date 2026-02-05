@@ -1,0 +1,21 @@
+MFA Enforcement Script (MFA-Enforcement-GOD-Script.ps1)
+Will it break anything? No — if you run it correctly.
+Here's why it's safe:
+
+Option 1 (-AuditOnly) — purely read-only. It scans users, checks MFA registration status, maps admin roles, and generates the HTML report. Changes absolutely nothing. Zero risk.
+Option 2 (-EnforceAll) — creates the 5 Conditional Access policies in Report-Only mode, not Enabled. That means they log what would happen but don't actually enforce anything yet. It also creates the break-glass accounts. Low risk — nothing gets blocked.
+Option 5 — this is the one that flips policies from Report-Only to Enabled. This is where users without MFA registered would get prompted. This is the only step that could "break" someone's access if they haven't registered MFA yet.
+
+Safe approach: Run Option 1 first (audit), review the report, then Option 2 (deploy in report-only), then Option 5 only when you're ready to go live before Feb 9.
+
+Databricks Task Scheduler Scripts
+There are two pieces here:
+
+Setup-ScheduledTask.ps1 — Creates a Windows Task Scheduler job that runs the Databricks-Datadog monitoring script every 60 seconds. Won't break anything — it just sends metrics to Datadog. Read-only against Databricks.
+install_autoscaler_task.ps1 (the auto-scaler) — This one does make changes — it scales Databricks warehouses up/down based on latency and queue depth. However, it has safety guards built in: cooldown timers (10 min between actions), max 3 scale-ups per hour, and a size ladder so it only steps one size at a time. Low risk but not zero — it modifies warehouse cluster sizes when thresholds are hit.
+
+Run order reminder from our last conversation:
+
+master_operations.ps1 (dry run first — creates service account)
+Review the HTML report
+install_autoscaler_task.ps1 (paste the client secret from step 1)
