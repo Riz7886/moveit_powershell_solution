@@ -1,0 +1,13 @@
+$subId = az account show --query id -o tsv
+$token = az account get-access-token --query accessToken -o tsv
+
+$body = '{"properties":{"limit":{"limitObjectType":"LimitValue","value":64},"name":{"value":"standardEDSv4Family"}}}'
+
+$headers = @{
+    "Authorization" = "Bearer $token"
+    "Content-Type" = "application/json"
+}
+
+$url = "https://management.azure.com/subscriptions/$subId/providers/Microsoft.Capacity/resourceProviders/Microsoft.Compute/locations/westus/serviceLimits/standardEDSv4Family?api-version=2020-10-25"
+
+Invoke-RestMethod -Uri $url -Method Put -Headers $headers -Body $body
