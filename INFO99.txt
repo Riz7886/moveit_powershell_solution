@@ -1,0 +1,4 @@
+az quota create --resource-name "standardEDSv4Family" --scope "/subscriptions/$(az account show --query id -o tsv)/providers/Microsoft.Compute/locations/westus" --limit-object value=64 limit-object-type=LimitValue --resource-type dedicated
+
+
+Start-Process "https://portal.azure.com/#blade/Microsoft_Azure_Support/HelpAndSupportBlade/newsupportrequest"
