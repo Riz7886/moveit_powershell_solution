@@ -1,0 +1,17 @@
+Hey Tony, here's the breakdown of next steps for the AtRisk users:
+
+1. Investigate the risk detections — We need to go into Entra ID > Identity Protection > Risky Users and review what triggered the risk for each user (leaked credentials, anomalous sign-ins, malware-linked IPs, etc.).
+
+2. Triage by risk level — High-risk users need immediate action. Medium-risk users we can review case by case.
+
+3. Remediate the flagged users:
+   - Force password reset for users with credential-based risks
+   - Revoke active sessions/refresh tokens
+   - Confirm compromise or dismiss the risk after investigation
+   - Ensure MFA is enforced for these users via Conditional Access if it isn't already
+
+4. Set up automated remediation — We should have a Conditional Access policy that automatically requires password change + MFA when user risk hits High. That way we're not doing this manually every time.
+
+5. I'll filter out disabled accounts from the report so we're only looking at active users that need action.
+
+I can pull together the filtered list of active AtRisk users and we can divide up who reaches out to which users. Let me know if you want to set up a quick call to go through the list.
