@@ -1,0 +1,11 @@
+# Dry run first (shows what it would do, no changes)
+.\Deploy-AzureInfrastructure.ps1 -DryRun
+
+# Deploy everything
+.\Deploy-AzureInfrastructure.ps1
+
+# Deploy only dev
+.\Deploy-AzureInfrastructure.ps1 -TargetEnv dev
+
+# Deploy only prod
+.\Deploy-AzureInfrastructure.ps1 -TargetEnv prod
