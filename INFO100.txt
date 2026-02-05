@@ -1,0 +1,1 @@
+az vm list-usage --location westus --query "[?contains(name.value, 'EDSv4')]" -o table
