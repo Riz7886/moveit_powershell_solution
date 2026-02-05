@@ -1,0 +1,33 @@
+Name: databricks-service-principal
+App ID: e44f4026-8d8e-4a26-a5c7-46269cc0d7de
+Tenant ID: 8ef3d734-3ca5-4493-8d8b-52b2c54eab04
+Secret: You should have saved this when we ran setup_databricks_service_account.ps1 — Azure only shows it once
+
+The monitoring script already has the App ID and Tenant ID hardcoded in it from when I built it. The only thing you need is the client secret you saved.
+
+Where does everything run?
+Everything runs on your local machine (or whichever machine you want to be the monitoring server):
+WhatWhereC:\Scripts\Databricks-Datadog-ScheduledTask.ps1The monitoring script — lives on your machineC:\Logs\Databricks-Datadog.logLog files — on your machineWindows Task SchedulerRuns the script every 60 seconds — on your machineService account credentialsStored in the script or as an environment variable — on your machineDatabricksScript reads from Databricks remotely via API using the service accountDatadogScript sends metrics to Datadog remotely via API
+Nothing gets installed or created on Databricks or in Azure. Your machine just calls out to both services every 60 seconds.
+
+Updated steps using your existing service account:
+Step 1 — Create folders
+powershellNew-Item -ItemType Directory -Path "C:\Scripts" -Force
+New-Item -ItemType Directory -Path "C:\Logs" -Force
+Step 2 — Copy script
+powershellCopy-Item ".\Databricks-Datadog-ScheduledTask.ps1" -Destination "C:\Scripts\"
+Step 3 — Set your client secret as an environment variable (so it's not in plain text)
+powershell# Replace YOUR_SECRET with the secret you saved when we created the service account
+[System.Environment]::SetEnvironmentVariable("DATABRICKS_SP_SECRET", "YOUR_SECRET", "Machine")
+If you lost the secret, we need to generate a new one:
+powershellaz ad app credential reset --id e44f4026-8d8e-4a26-a5c7-46269cc0d7de --display-name "monitoring-secret" --end-date "2027-02-04" --append
+Save the password it outputs.
+Step 4 — Test manually
+powershellcd C:\Scripts
+.\Databricks-Datadog-ScheduledTask.ps1
+Step 5 — Install the scheduled task (Run as Administrator)
+powershellcd C:\Scripts
+.\Setup-ScheduledTask.ps1
+Step 6 — Verify
+powershellGet-ScheduledTask -TaskName "Databricks-Datadog-Monitoring"
+Get-Content "C:\Logs\Databricks-Datadog.log" -Tail 20
