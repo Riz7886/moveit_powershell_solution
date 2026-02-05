@@ -1,0 +1,32 @@
+Hi Tony,
+
+Sorry about the Excel file — it may not have exported correctly. The HTML report is the main deliverable. Here's what everything means:
+
+WHAT THE REPORT SHOWS:
+This is an MFA (Multi-Factor Authentication) audit of every user in our tenant. It scans who has MFA registered and who doesn't.
+
+WHAT THE WARNINGS MEAN:
+- WARN = That user does NOT have MFA set up yet
+- State: atRisk = They are at risk because if MFA gets enforced (Microsoft deadline is Feb 9), they will be prompted to register MFA at their next login or could get locked out
+- Risk: low = Regular user account (not an admin)
+- Risk: medium = User with some elevated access
+
+THE USERS LISTED:
+Yes — every user showing WARN/atRisk needs to set up MFA before Feb 9. This includes:
+- ES Test, Kate Garcia, Aaron Mease, Alexis King, Maryfin Skye, Austin Hunter, Sheraz Khalid, Alana Hartley, Joe Armstrong, Garri Jackson-Mace, Call Center Library, Samantha Heinrich, SharePoint Service, Planful Integrations, Rafael Pacheco, Siboney Pena, Brett Ehrhardt, Kathryn Matlock, Isamar Sosa, Ian Quick
+
+Some of these are service accounts (Call Center Library, SharePoint Service, Planful Integrations) — those will need to be handled differently since they can't do interactive MFA. We can exclude them via Conditional Access policy.
+
+WHAT "EVERYTHING AT 0" MEANS:
+The scores at 0 mean those users have ZERO MFA methods registered — no Authenticator app, no phone number, no FIDO key, nothing. They are completely unprotected.
+
+WHAT WE NEED TO DO:
+1. Notify all users on the list to register MFA (Microsoft Authenticator is easiest)
+2. Exclude service accounts from MFA enforcement via Conditional Access
+3. Enforce MFA policies before Feb 9 deadline
+
+I can send out an email to all affected users with step-by-step instructions to set up MFA if you'd like.
+
+Let me know how you want to proceed.
+
+Syed
