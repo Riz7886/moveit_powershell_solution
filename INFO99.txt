@@ -1,4 +1,16 @@
-az quota create --resource-name "standardEDSv4Family" --scope "/subscriptions/$(az account show --query id -o tsv)/providers/Microsoft.Compute/locations/westus" --limit-object value=64 limit-object-type=LimitValue --resource-type dedicated
+$subId = az account show --query id -o tsv
+$token = az account get-access-token --query accessToken -o tsv
 
+$url = "https://management.azure.com/subscriptions/$subId/providers/Microsoft.Capacity/resourceProviders/Microsoft.Compute/locations/westus/serviceLimitsRequests/standardEDSv4Family?api-version=2020-10-25"
 
-Start-Process "https://portal.azure.com/#blade/Microsoft_Azure_Support/HelpAndSupportBlade/newsupportrequest"
+$body = @{
+    properties = @{
+        requestedResource = @{
+            limit = 64
+            name = @{ value = "standardEDSv4Family" }
+            resourceType = "dedicated"
+        }
+    }
+} | ConvertTo-Json -Depth 10
+
+Invoke-RestMethod -Uri $url -Method Put -Headers @{Authorization="Bearer $token";"Content-Type"="application/json"} -Body $body
