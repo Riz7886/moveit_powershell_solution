@@ -1,0 +1,17 @@
+$token = az account get-access-token --resource 2ff814a6-3304-4ab8-85cb-cd0e6f879c1d --query accessToken -o tsv
+$headers = @{ "Authorization" = "Bearer $token"; "Content-Type" = "application/json" }
+$url = "https://adb-3248848193480666.6.azuredatabricks.net"
+
+# Get Warehouse ID
+$warehouses = (Invoke-RestMethod -Uri "$url/api/2.0/sql/warehouses" -Headers $headers).warehouses
+$wh = $warehouses | Where-Object { $_.name -eq "Warehouse" }
+Write-Host "Warehouse ID: $($wh.id)"
+
+# Transfer ownership to manas.reddy
+$body = @{ owner_username = "manas.reddy@pyxhealth.com" } | ConvertTo-Json
+Invoke-RestMethod -Uri "$url/api/2.0/sql/warehouses/$($wh.id)" -Method Patch -Headers $headers -Body $body
+Write-Host "Ownership transferred to manas.reddy@pyxhealth.com"
+
+# Now start it
+Invoke-RestMethod -Uri "$url/api/2.0/sql/warehouses/$($wh.id)/start" -Method Post -Headers $headers
+Write-Host "Start command sent!"
