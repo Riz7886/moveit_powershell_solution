@@ -1,0 +1,20 @@
+$token = az account get-access-token --resource 2ff814a6-3304-4ab8-85cb-cd0e6f879c1d --query accessToken -o tsv
+$headers = @{ "Authorization" = "Bearer $token"; "Content-Type" = "application/json" }
+$url = "https://adb-3248848193480666.6.azuredatabricks.net"
+
+# Get FRESH warehouse list
+$warehouses = (Invoke-RestMethod -Uri "$url/api/2.0/sql/warehouses" -Headers $headers).warehouses
+$warehouses | ForEach-Object { Write-Host "$($_.name) = $($_.id) [$($_.state)]" }
+
+# Fix BOTH non-salesforce warehouses
+foreach ($wh in $warehouses) {
+    if ($wh.name -ne "salesforce") {
+        Write-Host "Fixing $($wh.name) (ID: $($wh.id))..."
+        $body = @{ owner_username = "manas.reddy@pyxhealth.com" } | ConvertTo-Json
+        Invoke-RestMethod -Uri "$url/api/2.0/sql/warehouses/$($wh.id)" -Method Patch -Headers $headers -Body $body
+        Write-Host "  Ownership transferred to manas.reddy"
+        Start-Sleep -Seconds 2
+        Invoke-RestMethod -Uri "$url/api/2.0/sql/warehouses/$($wh.id)/start" -Method Post -Headers $headers
+        Write-Host "  Started!"
+    }
+}
