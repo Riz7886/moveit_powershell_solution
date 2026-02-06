@@ -1,0 +1,29 @@
+$pat = "YOUR_PAT_HERE"
+$headers = @{ "Authorization" = "Bearer $pat"; "Content-Type" = "application/json" }
+$url = "https://adb-3248848193480666.6.azuredatabricks.net"
+
+# Start salesforce
+$warehouses = (Invoke-RestMethod -Uri "$url/api/2.0/sql/warehouses" -Headers $headers).warehouses
+foreach ($wh in $warehouses) {
+    if ($wh.name -eq "salesforce") {
+        Invoke-RestMethod -Uri "$url/api/2.0/sql/warehouses/$($wh.id)/start" -Method Post -Headers $headers
+        Write-Host "Started salesforce"
+    } else {
+        # Delete broken ones
+        Write-Host "Deleting $($wh.name)..."
+        Invoke-RestMethod -Uri "$url/api/2.0/sql/warehouses/$($wh.id)" -Method Delete -Headers $headers
+        Write-Host "Deleted $($wh.name)"
+    }
+}
+
+Start-Sleep -Seconds 5
+
+# Recreate under YOUR identity using PAT
+foreach ($name in @("Warehouse", "Starter Endpoint")) {
+    Write-Host "Creating $name..."
+    $body = @{ name=$name; cluster_size="2X-Small"; max_num_clusters=1; auto_stop_mins=15; warehouse_type="PRO"; enable_photon=$true; spot_instance_policy="RELIABILITY_OPTIMIZED" } | ConvertTo-Json
+    Invoke-RestMethod -Uri "$url/api/2.0/sql/warehouses" -Method Post -Headers $headers -Body $body
+    Write-Host "Created $name"
+}
+
+Write-Host "DONE - Check Databricks now"
