@@ -1,0 +1,1 @@
+az ad sp show --id 635393618389482 --query "{Name:displayName,AppId:appId}" -o table
