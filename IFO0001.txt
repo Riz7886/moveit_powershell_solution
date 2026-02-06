@@ -1,0 +1,27 @@
+# Set these directly
+$DatabricksWorkspaceUrl = "https://adb-3248848193480666.6.azuredatabricks.net"
+
+# Get token
+$token = az account get-access-token --resource 2ff814a6-3304-4ab8-85cb-cd0e6f879c1d --query accessToken -o tsv
+
+# Create headers
+$headers = @{
+    "Authorization" = "Bearer $token"
+    "Content-Type" = "application/json"
+}
+
+# List warehouses
+Write-Host "Getting warehouses..." -ForegroundColor Yellow
+$warehouses = Invoke-RestMethod -Uri "$DatabricksWorkspaceUrl/api/2.0/sql/warehouses" -Method Get -Headers $headers
+$warehouses.warehouses | ForEach-Object { Write-Host "$($_.name) - $($_.state)" -ForegroundColor Cyan }
+
+# Restart each warehouse
+foreach ($wh in $warehouses.warehouses) {
+    Write-Host "Restarting $($wh.name)..." -ForegroundColor Yellow
+    Invoke-RestMethod -Uri "$DatabricksWorkspaceUrl/api/2.0/sql/warehouses/$($wh.id)/stop" -Method Post -Headers $headers -ErrorAction SilentlyContinue
+    Start-Sleep -Seconds 3
+    Invoke-RestMethod -Uri "$DatabricksWorkspaceUrl/api/2.0/sql/warehouses/$($wh.id)/start" -Method Post -Headers $headers -ErrorAction SilentlyContinue
+    Write-Host "Started $($wh.name)" -ForegroundColor Green
+}
+
+Write-Host "DONE - Check Databricks now" -ForegroundColor Green
