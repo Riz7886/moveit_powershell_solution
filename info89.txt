@@ -1,0 +1,18 @@
+-- First check what Tony's email is
+-- Then grant him access to the missing catalogs
+
+GRANT USE CATALOG ON CATALOG chc TO `tony.schlak@pyxhealth.com`;
+GRANT USE CATALOG ON CATALOG five9 TO `tony.schlak@pyxhealth.com`;
+GRANT USE CATALOG ON CATALOG parkland TO `tony.schlak@pyxhealth.com`;
+GRANT USE CATALOG ON CATALOG salesforce TO `tony.schlak@pyxhealth.com`;
+
+-- Also grant schema and select so he can actually query
+GRANT USE SCHEMA ON CATALOG chc TO `tony.schlak@pyxhealth.com`;
+GRANT USE SCHEMA ON CATALOG five9 TO `tony.schlak@pyxhealth.com`;
+GRANT USE SCHEMA ON CATALOG parkland TO `tony.schlak@pyxhealth.com`;
+GRANT USE SCHEMA ON CATALOG salesforce TO `tony.schlak@pyxhealth.com`;
+
+GRANT SELECT ON CATALOG chc TO `tony.schlak@pyxhealth.com`;
+GRANT SELECT ON CATALOG five9 TO `tony.schlak@pyxhealth.com`;
+GRANT SELECT ON CATALOG parkland TO `tony.schlak@pyxhealth.com`;
+GRANT SELECT ON CATALOG salesforce TO `tony.schlak@pyxhealth.com`;
