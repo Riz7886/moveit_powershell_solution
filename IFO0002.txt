@@ -1,0 +1,27 @@
+# You should already have a token from the script, but just in case:
+$token = az account get-access-token --resource 2ff814a6-3304-4ab8-85cb-cd0e6f879c1d --query accessToken -o tsv
+$headers = @{ "Authorization" = "Bearer $token"; "Content-Type" = "application/json" }
+$url = "https://adb-3248848193480666.6.azuredatabricks.net"
+
+# Get warehouse IDs
+$warehouses = (Invoke-RestMethod -Uri "$url/api/2.0/sql/warehouses" -Headers $headers).warehouses
+$warehouses | ForEach-Object { Write-Host "$($_.name) = $($_.id) [$($_.state)]" }
+
+# DELETE Starter Endpoint and Warehouse (NOT salesforce)
+foreach ($wh in $warehouses) {
+    if ($wh.name -eq "Starter Endpoint" -or $wh.name -eq "Warehouse") {
+        Write-Host "Deleting $($wh.name)..."
+        Invoke-RestMethod -Uri "$url/api/2.0/sql/warehouses/$($wh.id)" -Method Delete -Headers $headers
+        Write-Host "Deleted $($wh.name)"
+    }
+}
+
+Start-Sleep -Seconds 5
+
+# RECREATE both under YOUR identity
+foreach ($name in @("Starter Endpoint", "Warehouse")) {
+    Write-Host "Creating $name..."
+    $body = @{ name=$name; cluster_size="2X-Small"; max_num_clusters=1; auto_stop_mins=15; warehouse_type="PRO"; enable_photon=$true } | ConvertTo-Json
+    Invoke-RestMethod -Uri "$url/api/2.0/sql/warehouses" -Method Post -Headers $headers -Body $body
+    Write-Host "Created $name"
+}
