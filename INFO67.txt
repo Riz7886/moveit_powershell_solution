@@ -1,0 +1,28 @@
+$token = "dapi3e027cd6686bcbf3e0a8f12f3e259b1cd"
+$workspace = "https://adb-324884819348686.6.azuredatabricks.net"
+
+$headers = @{
+    "Authorization" = "Bearer $token"
+    "Content-Type" = "application/json"
+}
+
+Write-Host "Getting clusters..." -ForegroundColor Yellow
+$clusters = Invoke-RestMethod -Uri "$workspace/api/2.0/clusters/list" -Headers $headers -Method Get
+
+Write-Host "`n=== CLUSTERS ===" -ForegroundColor Cyan
+foreach ($c in $clusters.clusters) {
+    Write-Host "`nCluster: $($c.cluster_name)" -ForegroundColor Green
+    Write-Host "  State: $($c.state)"
+    
+    if (-not $c.autoscale) {
+        Write-Host "  WARNING: NO AUTOSCALING!" -ForegroundColor Red
+    } else {
+        Write-Host "  Autoscale: $($c.autoscale.min_workers)-$($c.autoscale.max_workers) workers"
+    }
+    
+    if (-not $c.autotermination_minutes) {
+        Write-Host "  WARNING: NO AUTO-TERMINATION!" -ForegroundColor Red
+    } else {
+        Write-Host "  Auto-terminate: $($c.autotermination_minutes) min"
+    }
+}
