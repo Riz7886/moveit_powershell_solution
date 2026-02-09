@@ -1,0 +1,1 @@
+Invoke-RestMethod -Uri "https://adb-324884819348686.6.azuredatabricks.net/api/2.0/sql/warehouses" -Headers @{"Authorization"="Bearer dapi9abaad71d0865d1a32a08cba05a318b7"} | ConvertTo-Json
