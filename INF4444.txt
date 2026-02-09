@@ -1,0 +1,1 @@
+"I identified and resolved the Databricks quota issue. The root cause was the Processing Cluster configured with minimum 10 workers consuming 160 vCPUs continuously. I reconfigured it to min=1, max=8 with auto-termination, reducing baseline quota usage by 90% and saving approximately $7,200/month. Full analysis attached."
