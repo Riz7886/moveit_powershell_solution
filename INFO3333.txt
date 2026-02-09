@@ -1,0 +1,1 @@
+"Found the root cause of the quota spike. The Processing Cluster was configured with minimum 10 workers = 160 vCPUs running continuously. I reconfigured it to min=1, max=8 with auto-termination, reducing baseline quota usage by 90%. Issue resolved."
