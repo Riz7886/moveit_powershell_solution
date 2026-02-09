@@ -1,0 +1,39 @@
+# SUPER SIMPLE VERSION - JUST WORKS
+
+$token = Read-Host "Paste your Databricks token"
+$workspace = "https://adb-2794313901372706.6.azuredatabricks.net"
+
+$headers = @{
+    "Authorization" = "Bearer $token"
+    "Content-Type" = "application/json"
+}
+
+Write-Host "Getting clusters..." -ForegroundColor Yellow
+$clusters = Invoke-RestMethod -Uri "$workspace/api/2.0/clusters/list" -Headers $headers -Method Get
+
+Write-Host "`n=== CLUSTERS ===" -ForegroundColor Cyan
+foreach ($c in $clusters.clusters) {
+    Write-Host "`nCluster: $($c.cluster_name)" -ForegroundColor Green
+    Write-Host "  State: $($c.state)"
+    
+    if (-not $c.autoscale) {
+        Write-Host "  WARNING: NO AUTOSCALING!" -ForegroundColor Red
+    } else {
+        Write-Host "  Autoscale: $($c.autoscale.min_workers)-$($c.autoscale.max_workers) workers"
+    }
+    
+    if (-not $c.autotermination_minutes) {
+        Write-Host "  WARNING: NO AUTO-TERMINATION!" -ForegroundColor Red
+    } else {
+        Write-Host "  Auto-terminate: $($c.autotermination_minutes) min"
+    }
+}
+
+Write-Host "`n=== CHECKING AZURE QUOTA ===" -ForegroundColor Cyan
+$usages = Get-AzVMUsage -Location eastus
+$top = $usages | Where-Object { $_.Limit -gt 0 -and $_.CurrentValue -gt 0 } | Sort-Object { $_.CurrentValue / $_.Limit } -Descending | Select-Object -First 5
+
+foreach ($u in $top) {
+    $pct = [math]::Round(($u.CurrentValue / $u.Limit) * 100, 1)
+    Write-Host "$($u.Name.LocalizedValue): $($u.CurrentValue)/$($u.Limit) ($pct%)"
+}
