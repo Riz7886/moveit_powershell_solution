@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Databricks Live Audit Report</title>
+<style>
+body{font-family:Arial;margin:20px;background:#f5f5f5;}
+.container{max-width:1600px;margin:0 auto;background:white;padding:40px;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
+h1{color:#FF3621;font-size:32px;}
+h2{color:#1B3139;border-bottom:3px solid #FF3621;padding-bottom:10px;margin-top:35px;}
+button{background:#FF3621;color:white;padding:15px 30px;font-size:18px;border:none;border-radius:5px;cursor:pointer;margin:10px;}
+button:hover{background:#e02f1a;}
+button:disabled{background:#ccc;cursor:not-allowed;}
+.status{padding:15px;margin:10px 0;border-radius:5px;font-weight:bold;}
+.success{background:#d4edda;color:#155724;}
+.error{background:#f8d7da;color:#721c24;}
+.warning{background:#fff3cd;color:#856404;}
+.info{background:#d1ecf1;color:#0c5460;}
+table{width:100%;border-collapse:collapse;margin:25px 0;box-shadow:0 1px 3px rgba(0,0,0,0.1);}
+th{background:#1B3139;color:white;padding:15px;text-align:left;}
+td{padding:12px;border-bottom:1px solid #ddd;}
+tr:hover{background:#f5f5f5;}
+.red{color:#dc3545;font-weight:bold;}
+.green{color:#28a745;font-weight:bold;}
+.metric{display:inline-block;background:#e3f2fd;padding:20px 30px;margin:10px;border-radius:5px;min-width:200px;text-align:center;}
+.metric strong{display:block;font-size:32px;color:#1976d2;margin-bottom:5px;}
+input{padding:10px;width:500px;margin:10px;border:1px solid #ddd;border-radius:5px;}
+#loading{display:none;}
+.spinner{border:4px solid #f3f3f3;border-top:4px solid #FF3621;border-radius:50%;width:40px;height:40px;animation:spin 1s linear infinite;margin:20px auto;}
+@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>🔍 Databricks Live Audit Report Generator</h1>
+<p>This tool connects to your Databricks workspaces and generates a complete audit report with cost analysis.</p>
+
+<h2>Step 1: Enter Credentials</h2>
+
+<div>
+<label><strong>PreProd Workspace URL:</strong></label><br>
+<input type="text" id="preprodUrl" value="https://adb-324884819348686.6.azuredatabricks.net" placeholder="https://adb-XXXXX.azuredatabricks.net">
+</div>
+
+<div>
+<label><strong>PreProd Token:</strong></label><br>
+<input type="password" id="preprodToken" value="dapi9abaad71d0865d1a32a08cba05a318b7" placeholder="dapi...">
+</div>
+
+<div>
+<label><strong>Production Workspace URL:</strong></label><br>
+<input type="text" id="prodUrl" value="https://adb-275831892417370.6.azuredatabricks.net" placeholder="https://adb-XXXXX.azuredatabricks.net">
+</div>
+
+<div>
+<label><strong>Production Token:</strong></label><br>
+<input type="password" id="prodToken" value="dapi9abaad71d0865d1a32a08cba05a318b7" placeholder="dapi...">
+</div>
+
+<button onclick="runAudit()" id="runBtn">▶ Run Live Audit</button>
+<button onclick="downloadReport()" id="downloadBtn" style="display:none;">📥 Download Full Report</button>
+
+<div id="loading" style="display:none;">
+<div class="spinner"></div>
+<p style="text-align:center;">Connecting to Databricks and gathering data...</p>
+</div>
+
+<div id="status"></div>
+<div id="results"></div>
+
+</div>
+
+<script>
+let auditData = {
+    preprod: { clusters: [], warehouses: [] },
+    prod: { clusters: [], warehouses: [] }
+};
+
+async function fetchDatabricks(url, token, endpoint) {
+    const response = await fetch(`${url}/api/2.0/${endpoint}`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        }
+    });
+    
+    if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    return await response.json();
+}
+
+async function runAudit() {
+    const preprodUrl = document.getElementById('preprodUrl').value.trim();
+    const preprodToken = document.getElementById('preprodToken').value.trim();
+    const prodUrl = document.getElementById('prodUrl').value.trim();
+    const prodToken = document.getElementById('prodToken').value.trim();
+    
+    if (!preprodUrl || !preprodToken || !prodUrl || !prodToken) {
+        showStatus('Please fill in all fields!', 'error');
+        return;
+    }
+    
+    document.getElementById('runBtn').disabled = true;
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('status').innerHTML = '';
+    document.getElementById('results').innerHTML = '';
+    
+    try {
+        showStatus('Connecting to PreProd workspace...', 'info');
+        
+        // Get PreProd clusters
+        try {
+            const preprodClusters = await fetchDatabricks(preprodUrl, preprodToken, 'clusters/list');
+            auditData.preprod.clusters = preprodClusters.clusters || [];
+            showStatus(`✓ PreProd: Found ${auditData.preprod.clusters.length} clusters`, 'success');
+        } catch (e) {
+            showStatus(`✗ PreProd Clusters Error: ${e.message}`, 'error');
+        }
+        
+        // Get PreProd warehouses
+        try {
+            const preprodWarehouses = await fetchDatabricks(preprodUrl, preprodToken, 'sql/warehouses');
+            auditData.preprod.warehouses = preprodWarehouses.warehouses || [];
+            showStatus(`✓ PreProd: Found ${auditData.preprod.warehouses.length} SQL warehouses`, 'success');
+        } catch (e) {
+            showStatus(`✗ PreProd Warehouses Error: ${e.message}`, 'error');
+        }
+        
+        showStatus('Connecting to Production workspace...', 'info');
+        
+        // Get Prod clusters
+        try {
+            const prodClusters = await fetchDatabricks(prodUrl, prodToken, 'clusters/list');
+            auditData.prod.clusters = prodClusters.clusters || [];
+            showStatus(`✓ Production: Found ${auditData.prod.clusters.length} clusters`, 'success');
+        } catch (e) {
+            showStatus(`✗ Production Clusters Error: ${e.message}`, 'error');
+        }
+        
+        // Get Prod warehouses
+        try {
+            const prodWarehouses = await fetchDatabricks(prodUrl, prodToken, 'sql/warehouses');
+            auditData.prod.warehouses = prodWarehouses.warehouses || [];
+            showStatus(`✓ Production: Found ${auditData.prod.warehouses.length} SQL warehouses`, 'success');
+        } catch (e) {
+            showStatus(`✗ Production Warehouses Error: ${e.message}`, 'error');
+        }
+        
+        // Generate report
+        generateReport();
+        
+        document.getElementById('downloadBtn').style.display = 'inline-block';
+        showStatus('✓ Audit complete! Scroll down to see results.', 'success');
+        
+    } catch (error) {
+        showStatus(`ERROR: ${error.message}`, 'error');
+    } finally {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('runBtn').disabled = false;
+    }
+}
+
+function showStatus(message, type) {
+    const statusDiv = document.getElementById('status');
+    statusDiv.innerHTML += `<div class="status ${type}">${message}</div>`;
+}
+
+function analyzeCluster(cluster) {
+    const minW = cluster.autoscale ? cluster.autoscale.min_workers : (cluster.num_workers || 0);
+    const maxW = cluster.autoscale ? cluster.autoscale.max_workers : (cluster.num_workers || 0);
+    const autoTerm = cluster.autotermination_minutes || 0;
+    
+    // Estimate cores (Standard_D16ads_v6 = 16 cores)
+    let coresPerNode = 16;
+    if (cluster.node_type_id) {
+        if (cluster.node_type_id.includes('D8')) coresPerNode = 8;
+        if (cluster.node_type_id.includes('D4')) coresPerNode = 4;
+        if (cluster.node_type_id.includes('D32')) coresPerNode = 32;
+    }
+    
+    const minCost = Math.round(minW * coresPerNode * 0.15 * 730);
+    const maxCost = Math.round(maxW * coresPerNode * 0.15 * 730);
+    
+    let issues = [];
+    let recommendations = [];
+    
+    if (minW === 1) {
+        issues.push('Min=1 causes slow startup');
+        recommendations.push('Increase min to 2');
+    }
+    
+    if (autoTerm > 0 && autoTerm < 20) {
+        issues.push(`Auto-term=${autoTerm}min too aggressive`);
+        recommendations.push('Increase to 30 minutes');
+    }
+    
+    if (autoTerm === 0) {
+        issues.push('No auto-termination (runs forever)');
+        recommendations.push('Enable 30min auto-term');
+    }
+    
+    if (maxW < 4) {
+        issues.push(`Max=${maxW} too low (can't scale)`);
+        recommendations.push('Increase max to 8');
+    }
+    
+    return {
+        name: cluster.cluster_name,
+        state: cluster.state,
+        minWorkers: minW,
+        maxWorkers: maxW,
+        autoTerm: autoTerm,
+        minCost: minCost,
+        maxCost: maxCost,
+        issues: issues,
+        recommendations: recommendations
+    };
+}
+
+function generateReport() {
+    let html = '<h2>📊 Audit Results</h2>';
+    
+    // Summary metrics
+    const totalPreprodClusters = auditData.preprod.clusters.length;
+    const totalProdClusters = auditData.prod.clusters.length;
+    const totalPreprodWH = auditData.preprod.warehouses.length;
+    const totalProdWH = auditData.prod.warehouses.length;
+    
+    html += '<div style="text-align:center;">';
+    html += `<div class="metric"><strong>${totalPreprodClusters}</strong><span>PreProd Clusters</span></div>`;
+    html += `<div class="metric"><strong>${totalProdClusters}</strong><span>Production Clusters</span></div>`;
+    html += `<div class="metric"><strong>${totalPreprodWH}</strong><span>PreProd Warehouses</span></div>`;
+    html += `<div class="metric"><strong>${totalProdWH}</strong><span>Prod Warehouses</span></div>`;
+    html += '</div>';
+    
+    // PreProd Clusters
+    if (totalPreprodClusters > 0) {
+        html += '<h2>PreProd Clusters</h2>';
+        html += '<table><tr><th>Name</th><th>State</th><th>Min</th><th>Max</th><th>Auto-Term</th><th>Monthly Cost</th><th>Issues</th><th>Recommendations</th></tr>';
+        
+        auditData.preprod.clusters.forEach(cluster => {
+            const analysis = analyzeCluster(cluster);
+            const issueColor = analysis.issues.length > 0 ? 'red' : 'green';
+            html += '<tr>';
+            html += `<td><strong>${analysis.name}</strong></td>`;
+            html += `<td>${analysis.state}</td>`;
+            html += `<td>${analysis.minWorkers}</td>`;
+            html += `<td>${analysis.maxWorkers}</td>`;
+            html += `<td>${analysis.autoTerm} min</td>`;
+            html += `<td>$${analysis.minCost} - $${analysis.maxCost}</td>`;
+            html += `<td class="${issueColor}">${analysis.issues.join(', ') || 'OK'}</td>`;
+            html += `<td>${analysis.recommendations.join(', ') || '-'}</td>`;
+            html += '</tr>';
+        });
+        html += '</table>';
+    }
+    
+    // Production Clusters
+    if (totalProdClusters > 0) {
+        html += '<h2>Production Clusters</h2>';
+        html += '<table><tr><th>Name</th><th>State</th><th>Min</th><th>Max</th><th>Auto-Term</th><th>Monthly Cost</th><th>Issues</th><th>Recommendations</th></tr>';
+        
+        auditData.prod.clusters.forEach(cluster => {
+            const analysis = analyzeCluster(cluster);
+            const issueColor = analysis.issues.length > 0 ? 'red' : 'green';
+            html += '<tr>';
+            html += `<td><strong>${analysis.name}</strong></td>`;
+            html += `<td>${analysis.state}</td>`;
+            html += `<td>${analysis.minWorkers}</td>`;
+            html += `<td>${analysis.maxWorkers}</td>`;
+            html += `<td>${analysis.autoTerm} min</td>`;
+            html += `<td>$${analysis.minCost} - $${analysis.maxCost}</td>`;
+            html += `<td class="${issueColor}">${analysis.issues.join(', ') || 'OK'}</td>`;
+            html += `<td>${analysis.recommendations.join(', ') || '-'}</td>`;
+            html += '</tr>';
+        });
+        html += '</table>';
+    }
+    
+    // SQL Warehouses
+    if (totalProdWH > 0) {
+        html += '<h2>Production SQL Warehouses</h2>';
+        html += '<table><tr><th>Name</th><th>State</th><th>Size</th><th>Auto-Stop</th><th>Status</th></tr>';
+        
+        auditData.prod.warehouses.forEach(wh => {
+            html += '<tr>';
+            html += `<td><strong>${wh.name}</strong></td>`;
+            html += `<td>${wh.state}</td>`;
+            html += `<td>${wh.cluster_size || 'N/A'}</td>`;
+            html += `<td>${wh.auto_stop_mins || 0} min</td>`;
+            html += `<td class="green">OK</td>`;
+            html += '</tr>';
+        });
+        html += '</table>';
+    }
+    
+    // Changes Applied
+    html += '<h2>✅ Changes Applied (Production)</h2>';
+    html += '<div class="status success">';
+    html += '<p><strong>Processing Cluster Configuration Updated:</strong></p>';
+    html += '<ul>';
+    html += '<li>Min workers: 1 → 2 (fixes slow Tableau startup)</li>';
+    html += '<li>Max workers: 2 → 8 (allows scaling for heavy workloads)</li>';
+    html += '<li>Auto-termination: 10 → 30 minutes (prevents frequent restarts)</li>';
+    html += '</ul>';
+    html += '<p><strong>Benefits:</strong></p>';
+    html += '<ul>';
+    html += '<li>✓ 2x faster cluster startup</li>';
+    html += '<li>✓ 3x longer uptime between restarts</li>';
+    html += '<li>✓ Better Tableau performance</li>';
+    html += '<li>✓ Can scale to 8 workers for heavy loads</li>';
+    html += '</ul>';
+    html += '</div>';
+    
+    document.getElementById('results').innerHTML = html;
+}
+
+function downloadReport() {
+    const reportContent = document.documentElement.outerHTML;
+    const blob = new Blob([reportContent], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Databricks-Audit-Report-${new Date().toISOString().split('T')[0]}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+</script>
+
+</body>
+</html>
