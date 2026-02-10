@@ -1,0 +1,65 @@
+Subject: PowerShell DNS Resolution Issue - Databricks URLs
+
+Hi IT Team,
+
+I'm experiencing DNS resolution issues in PowerShell that started this weekend. 
+
+Issue: PowerShell cannot resolve Databricks domain names, but browser works fine.
+
+Error: "The remote name could not be resolved: 'adb-324884819348686.6.azuredatabricks.net'"
+
+Domains affected:
+- adb-324884819348686.6.azuredatabricks.net
+- adb-275831892417370.6.azuredatabricks.net
+
+What works: Browser, Edge, Chrome all access these URLs fine
+What fails: PowerShell (Invoke-RestMethod, Invoke-WebRequest)
+
+This worked on Friday Feb 7 but stopped working Monday Feb 10.
+
+I need PowerShell to resolve these domains for automation scripts. Can you please investigate DNS/proxy configuration?
+
+Thanks,
+Syed Rizvi
+
+
+Hey [Manager],
+
+Quick heads up - I'm experiencing a DNS issue on my laptop that's blocking my automation scripts. PowerShell can't resolve Databricks URLs (worked Friday, broken today).
+
+I've completed the Databricks configuration changes manually and documented everything. I've also submitted an IT ticket to fix the DNS issue so I can resume running audit scripts.
+
+In the meantime, do you need the full audit report urgently? I can either:
+1. Wait for IT to fix DNS (recommended)
+2. Run scripts from Azure Cloud Shell today (workaround)
+
+Let me know.
+
+
+
+# Databricks Audit from Cloud Shell
+$preprodUrl = "https://adb-324884819348686.6.azuredatabricks.net"
+$preprodToken = "YOUR_PREPROD_TOKEN"
+$prodUrl = "https://adb-275831892417370.6.azuredatabricks.net"
+$prodToken = "YOUR_PROD_TOKEN"
+
+Write-Host "=== DATABRICKS AUDIT ===" -ForegroundColor Cyan
+
+# PreProd
+$headers = @{"Authorization" = "Bearer $preprodToken"}
+$pp = Invoke-RestMethod -Uri "$preprodUrl/api/2.0/clusters/list" -Headers $headers
+Write-Host "PreProd Clusters: $($pp.clusters.Count)" -ForegroundColor Green
+
+# Production
+$headers = @{"Authorization" = "Bearer $prodToken"}
+$prod = Invoke-RestMethod -Uri "$prodUrl/api/2.0/clusters/list" -Headers $headers
+Write-Host "Production Clusters: $($prod.clusters.Count)" -ForegroundColor Green
+
+foreach ($c in $prod.clusters) {
+    $min = if ($c.autoscale) { $c.autoscale.min_workers } else { $c.num_workers }
+    $max = if ($c.autoscale) { $c.autoscale.max_workers } else { $c.num_workers }
+    $term = $c.autotermination_minutes
+    Write-Host "  $($c.cluster_name): Min=$min Max=$max Term=$term" -ForegroundColor White
+}
+
+Write-Host "DONE!" -ForegroundColor Green
