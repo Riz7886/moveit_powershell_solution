@@ -1,0 +1,50 @@
+# Step 1: Connect to Azure manually
+Connect-AzAccount
+
+# Step 2: Select the right subscription
+Set-AzContext -Subscription "YOUR_SUBSCRIPTION_NAME"
+
+# Step 3: Run the script
+.\Azure-Environment-Naming-Audit.ps1
+
+
+
+
+-----------------------
+
+# Clear any old sessions
+Disconnect-AzAccount -ErrorAction SilentlyContinue
+
+# Connect fresh
+Write-Host "Connecting to Azure..." -ForegroundColor Yellow
+Connect-AzAccount
+
+# Show available subscriptions
+Write-Host ""
+Write-Host "Available Subscriptions:" -ForegroundColor Cyan
+Get-AzSubscription | Format-Table Name, Id, State
+
+# Let user pick
+$subName = Read-Host "Enter subscription name (or press Enter for default)"
+if ($subName) {
+    Set-AzContext -Subscription $subName
+}
+
+# Now run the audit script
+.\Azure-Environment-Naming-Audit.ps1
+
+
+---------------------------------------------------
+
+# Disconnect old session
+Disconnect-AzAccount
+
+# Connect fresh
+Connect-AzAccount
+
+# Pick your subscription
+Get-AzSubscription
+Set-AzContext -Subscription "PRODUCTION_SUBSCRIPTION_NAME"
+
+# Run script again
+.\Azure-Environment-Naming-Audit.ps1
