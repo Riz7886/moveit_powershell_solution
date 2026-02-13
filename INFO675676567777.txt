@@ -1,0 +1,28 @@
+Hi Tony,
+
+I can handle this. UniFi OS updates are straightforward - I've done these before.
+
+For the UDM Pro going from 4.4.6 to 5.0.12:
+
+BEFORE UPDATING:
+- Backup current config (Settings > System > Backup)
+- Check if any critical changes in 5.0.12 release notes
+- Schedule during maintenance window (brief downtime expected)
+
+THE UPDATE:
+- Click "Install now" 
+- Update takes ~5-10 minutes
+- Controller will reboot
+- Network will have ~2-3 min downtime during reboot
+
+AFTER UPDATE:
+- Verify all devices reconnect
+- Check controller shows all APs/switches online
+- Test connectivity
+
+Best practice: Do this during off-hours (evening/weekend) to minimize 
+impact. I can handle it if you want, or walk someone through it.
+
+Let me know when you want to schedule it!
+
+Syed
