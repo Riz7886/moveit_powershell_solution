@@ -1,0 +1,205 @@
+$ErrorActionPreference = "Stop"
+
+$spName = "databricks-jobs-service-principal"
+$spAppId = "d519efa6-3cb5-4fa0-8535-c657175be154"
+$account = az account show | ConvertFrom-Json
+$reportFile = "Databricks-Report-$(Get-Date -Format 'yyyyMMdd-HHmmss').html"
+
+$html = @"
+<html>
+<head>
+<title>Databricks Setup Report</title>
+<style>
+body{font-family:Arial;margin:40px;background:white;color:black}
+.container{max-width:1000px;margin:0 auto;background:white;padding:30px}
+h1{color:black;border-bottom:2px solid black;padding-bottom:10px}
+h2{color:black;margin-top:25px;border-bottom:1px solid gray;padding-bottom:8px}
+h3{color:black;margin-top:15px}
+table{width:100%;border-collapse:collapse;margin:15px 0}
+th,td{border:1px solid black;padding:10px;text-align:left}
+th{background:lightgray;color:black}
+tr:nth-child(even){background:whitesmoke}
+.box{background:whitesmoke;border:1px solid gray;padding:15px;margin:15px 0}
+ul{line-height:1.6}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Databricks Service Principal Setup Report</h1>
+
+<div class="box">
+<p><strong>Setup Date:</strong> $(Get-Date -Format 'MMMM dd, yyyy hh:mm:ss tt')</p>
+<p><strong>Configured By:</strong> $($account.user.name)</p>
+<p><strong>Subscription:</strong> $($account.name)</p>
+<p><strong>Status:</strong> COMPLETE</p>
+</div>
+
+<h2>Service Principal Details</h2>
+<table>
+<tr><th>Property</th><th>Value</th></tr>
+<tr><td>Display Name</td><td>$spName</td></tr>
+<tr><td>Application ID</td><td>$spAppId</td></tr>
+<tr><td>Status</td><td>ACTIVE</td></tr>
+<tr><td>Date</td><td>$(Get-Date -Format 'MMMM dd, yyyy')</td></tr>
+</table>
+
+<h2>Databricks Workspaces Configured</h2>
+
+<div class="box">
+<h3>Workspace 1: pyx-warehouse-prod PREPROD</h3>
+<p><strong>URL:</strong> https://adb-2756318924173706.6.azuredatabricks.net</p>
+<p><strong>Resource Group:</strong> rg-warehouse-preprod</p>
+<p><strong>Configuration:</strong></p>
+<ul>
+<li>Service principal added to admins group</li>
+<li>Service principal added to prod-datateam group</li>
+<li>5 users configured</li>
+</ul>
+</div>
+
+<div class="box">
+<h3>Workspace 2: pyxlake-databricks PROD</h3>
+<p><strong>URL:</strong> https://adb-3248848193480666.6.azuredatabricks.net</p>
+<p><strong>Resource Group:</strong> rg-adls-poc</p>
+<p><strong>Configuration:</strong></p>
+<ul>
+<li>Service principal added to admins group</li>
+<li>Service principal added to datateam group</li>
+<li>5 users configured</li>
+</ul>
+</div>
+
+<h2>User Access Configuration</h2>
+
+<table>
+<tr>
+<th>User Email</th>
+<th>Permission Level</th>
+<th>Workspace Access</th>
+<th>Cluster Creation</th>
+<th>Groups</th>
+</tr>
+<tr>
+<td>preyash.patel@pyxhealth.com</td>
+<td>MANAGER</td>
+<td>YES</td>
+<td>YES</td>
+<td>admins, prod-datateam</td>
+</tr>
+<tr>
+<td>sheela@pyxhealth.com</td>
+<td>READ ONLY</td>
+<td>YES</td>
+<td>NO</td>
+<td>None</td>
+</tr>
+<tr>
+<td>brian.burge@pyxhealth.com</td>
+<td>READ ONLY</td>
+<td>YES</td>
+<td>NO</td>
+<td>None</td>
+</tr>
+<tr>
+<td>robert@pyxhealth.com</td>
+<td>READ ONLY</td>
+<td>YES</td>
+<td>NO</td>
+<td>None</td>
+</tr>
+<tr>
+<td>hunter@pyxhealth.com</td>
+<td>READ ONLY</td>
+<td>YES</td>
+<td>NO</td>
+<td>None</td>
+</tr>
+</table>
+
+<h2>Permissions Summary</h2>
+
+<div class="box">
+<h3>Preyash Patel - MANAGER</h3>
+<p><strong>Allowed:</strong></p>
+<ul>
+<li>Create and manage clusters</li>
+<li>Run jobs and workflows</li>
+<li>View all resources</li>
+<li>Manage group memberships</li>
+</ul>
+<p><strong>Not Allowed:</strong></p>
+<ul>
+<li>Delete workspaces</li>
+<li>Create new groups</li>
+<li>Add or remove users - requires account admin</li>
+</ul>
+</div>
+
+<div class="box">
+<h3>Other Users - READ ONLY</h3>
+<p><strong>Users:</strong> Sheela, Brian Burge, Robert, Hunter</p>
+<p><strong>Allowed:</strong></p>
+<ul>
+<li>View notebooks and code</li>
+<li>View job runs and results</li>
+<li>View SQL queries and dashboards</li>
+</ul>
+<p><strong>Not Allowed:</strong></p>
+<ul>
+<li>Create or modify anything</li>
+<li>Run jobs</li>
+<li>Create clusters</li>
+</ul>
+</div>
+
+<h2>Setup Summary</h2>
+
+<table>
+<tr><th>Item</th><th>Count</th></tr>
+<tr><td>Workspaces Configured</td><td>2</td></tr>
+<tr><td>Service Principals Created</td><td>1</td></tr>
+<tr><td>Users Configured</td><td>5</td></tr>
+<tr><td>Groups Configured</td><td>4</td></tr>
+<tr><td>Setup Method</td><td>Automated Script + Manual UI</td></tr>
+</table>
+
+<h2>Important Notes</h2>
+
+<div class="box">
+<p><strong>User Management:</strong></p>
+<p>To allow Preyash to add or remove users, contact your Databricks account administrator.</p>
+<p>They need to go to https://accounts.cloud.databricks.com and grant Preyash the Workspace Admin role.</p>
+<p>Contact John or Tony to do this.</p>
+</div>
+
+<h2>Next Steps</h2>
+<ol>
+<li>Update Databricks jobs to use service principal: $spName</li>
+<li>Test service principal permissions in both workspaces</li>
+<li>Verify users can access workspaces</li>
+<li>Contact account admin to grant Preyash user management</li>
+<li>Set up monitoring</li>
+</ol>
+
+<div class="box">
+<p><strong>Report Generated By:</strong> Syed Rizvi</p>
+<p><strong>Date:</strong> $(Get-Date -Format 'MMMM dd, yyyy hh:mm:ss tt')</p>
+<p>Databricks Service Principal Setup Complete</p>
+</div>
+
+</div>
+</body>
+</html>
+"@
+
+[System.IO.File]::WriteAllText($reportFile, $html, [System.Text.Encoding]::ASCII)
+
+Write-Host ""
+Write-Host "PLAIN REPORT CREATED - ASCII ONLY" -ForegroundColor Green
+Write-Host "File: $reportFile" -ForegroundColor Cyan
+Write-Host ""
+
+Start-Process $reportFile
+
+Write-Host "DONE" -ForegroundColor Green
