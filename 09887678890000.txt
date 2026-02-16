@@ -1,0 +1,4 @@
+az ad sp show --id d519efa6-3cb5-4fa0-8535-c657175be154 --query "{Name:displayName, AppId:appId, Created:createdDateTime}" -o table
+
+
+az databricks workspace list --query "[].{Name:name, Subscription:id, ResourceGroup:resourceGroup}" -o table
