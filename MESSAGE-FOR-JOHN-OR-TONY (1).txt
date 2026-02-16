@@ -1,0 +1,80 @@
+====================================================================
+URGENT: Need 2 Minutes - Service Principal Permissions
+====================================================================
+
+Hey John/Tony,
+
+We need your help to enable our service principal to run Databricks jobs.
+This is blocking us from using the automation we just set up.
+
+====================================================================
+WHAT TO DO (Takes 2 minutes):
+====================================================================
+
+STEP 1: Go to Databricks Account Console
+-----------------------------------------
+Open: https://accounts.cloud.databricks.com
+Login with your account admin credentials
+
+STEP 2: Navigate to Service Principals
+---------------------------------------
+1. Click on your account name (top of page)
+2. Go to "Service Principals" section
+3. Find: databricks-jobs-service-principal
+   App ID: d519efa6-3cb5-4fa0-8535-c657175be154
+
+STEP 3: Grant Required Roles
+-----------------------------
+Click on the service principal, then:
+
+1. Look for "Roles" or "Entitlements" section
+2. Grant these two roles:
+   
+   [ ] Service Principal User
+       (CRITICAL - allows jobs to run as this service principal)
+   
+   [ ] Workspace Admin
+       (allows Preyash to manage users in workspaces)
+
+3. Click "Save" or "Update"
+
+====================================================================
+WHY WE NEED THIS:
+====================================================================
+
+Current Issue:
+- We can see the service principal in Databricks
+- We cannot assign jobs to run as this service principal
+- Getting error: "You do not have the required permissions"
+
+What This Fixes:
+- Enables automated job execution using service principal
+- Allows Preyash to add/remove users without asking for help
+- Completes our Databricks automation setup
+
+====================================================================
+VERIFICATION:
+====================================================================
+
+After you grant these roles:
+1. Let me know it's done
+2. I'll test assigning a job to the service principal
+3. Should work immediately
+
+====================================================================
+DETAILS:
+====================================================================
+
+Service Principal Name: databricks-jobs-service-principal
+Application ID: d519efa6-3cb5-4fa0-8535-c657175be154
+Workspaces: pyx-warehouse-prod, pyxlake-databricks
+Required Roles: Service Principal User, Workspace Admin
+
+====================================================================
+QUESTIONS?
+====================================================================
+
+Contact: Syed Rizvi
+This is the last step to complete our Databricks automation!
+
+====================================================================
