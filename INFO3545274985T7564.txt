@@ -1,0 +1,1 @@
+az resource list --resource-type "Microsoft.Databricks/workspaces" --query "[].{name:name,url:properties.workspaceUrl}" -o table
