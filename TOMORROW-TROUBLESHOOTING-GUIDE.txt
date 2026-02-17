@@ -1,0 +1,153 @@
+====================================================================
+TOMORROW - IF PREYASH STILL CANNOT ASSIGN JOBS TO SERVICE PRINCIPAL
+====================================================================
+
+CURRENT STATUS:
+- Service principal created: databricks-jobs-service-principal
+- App ID: d519efa6-3cb5-4fa0-8535-c657175be154
+- Added to both workspaces
+- Tony turned ON "Account admin" toggle
+- Preyash still getting error when trying to assign jobs
+
+====================================================================
+TROUBLESHOOTING STEPS FOR TOMORROW:
+====================================================================
+
+STEP 1: VERIFY ACCOUNT ADMIN IS ACTUALLY ON
+--------------------------------------------
+Ask Tony to:
+1. Go to: https://accounts.cloud.databricks.com
+2. Service Principals > databricks-jobs-service-principal
+3. Click "Roles" tab
+4. Take screenshot showing "Account admin" is ON
+5. Send screenshot to confirm
+
+STEP 2: CHECK IF PERMISSIONS PROPAGATED
+----------------------------------------
+Wait 30 minutes after Tony confirmed it's ON
+Azure permissions can take 15-30 minutes to fully propagate
+
+STEP 3: GRANT WORKSPACE-LEVEL PERMISSIONS
+------------------------------------------
+In EACH workspace (do this in both):
+
+A. Add Service Principal to Workspace Users:
+   1. Settings > Identity and Access > Service Principals
+   2. Click: d519efa6-3cb5-4fa0-8535-c657175be154
+   3. Click "Permissions" tab
+   4. Add these users with "CAN MANAGE":
+      - preyash.patel@pyxhealth.com
+      - SRizvi@pyxhealth.com
+   5. Save
+
+B. Grant Cluster Permissions:
+   1. Go to: Compute
+   2. Find the cluster used by the job
+   3. Click > Permissions
+   4. Add: d519efa6-3cb5-4fa0-8535-c657175be154
+   5. Permission: "Can Restart"
+   6. Save
+
+STEP 4: CHECK ACCOUNT-LEVEL USER PERMISSIONS
+---------------------------------------------
+Ask Tony to verify Preyash has permissions:
+
+At https://accounts.cloud.databricks.com:
+1. Go to "Users"
+2. Find: preyash.patel@pyxhealth.com
+3. Check roles - should have "Workspace Admin" or similar
+4. If not, grant "Workspace Admin" role
+
+STEP 5: ALTERNATIVE - USE METASTORE ADMIN
+------------------------------------------
+If Account admin doesn't work, try:
+
+Ask Tony to grant these roles instead:
+1. Service Principal User (critical)
+2. Metastore Admin
+3. Workspace Admin
+
+STEP 6: VERIFY SERVICE PRINCIPAL IN ACCOUNT CONSOLE
+----------------------------------------------------
+Ask Tony to check:
+1. Go to account console
+2. Workspaces section
+3. Click on each workspace (pyx-warehouse-prod, pyxlake-databricks)
+4. Check if service principal is assigned to the workspace
+5. If not, assign it
+
+STEP 7: CHECK JOB OWNER PERMISSIONS
+------------------------------------
+If Preyash is trying to change an EXISTING job:
+
+1. The job might be owned by someone else
+2. Preyash needs "Owner" or "Can Manage" on that specific job
+3. Go to job > Permissions
+4. Add Preyash with "Can Manage"
+5. Then try changing "Run as"
+
+STEP 8: CREATE NEW TEST JOB
+----------------------------
+Instead of modifying existing job:
+
+1. Create BRAND NEW job
+2. Simple task (SELECT 1 or print statement)
+3. Try to set "Run as" to service principal on NEW job
+4. If NEW job works but OLD job doesn't = it's a job ownership issue
+
+STEP 9: NUCLEAR OPTION - RECREATE SERVICE PRINCIPAL
+----------------------------------------------------
+If nothing works, we can:
+
+1. Delete current service principal
+2. Create new one with different name
+3. Grant Account admin immediately
+4. Add to workspaces
+5. Test right away
+
+STEP 10: CONTACT DATABRICKS SUPPORT
+------------------------------------
+If all else fails:
+
+Open support ticket with Databricks:
+- Issue: Cannot assign jobs to service principal
+- Account admin role is granted
+- Service principal visible in workspace
+- Error: "You do not have the required permissions"
+- Need help troubleshooting
+
+====================================================================
+MOST LIKELY CAUSES:
+====================================================================
+
+1. Permissions not propagated yet (wait 30 min - 1 hour)
+2. Preyash doesn't have workspace admin role at account level
+3. Service principal needs "Service Principal User" role specifically
+4. The job Preyash is modifying has different owner
+5. Workspace not properly linked to account console
+
+====================================================================
+QUICK DIAGNOSTIC COMMANDS:
+====================================================================
+
+Run these in Cloud Shell to verify setup:
+
+# Check if service principal exists
+az ad sp show --id d519efa6-3cb5-4fa0-8535-c657175be154
+
+# Check role assignments
+az role assignment list --assignee d519efa6-3cb5-4fa0-8535-c657175be154
+
+# List workspaces
+az databricks workspace list
+
+====================================================================
+CONTACT INFO:
+====================================================================
+
+If stuck, escalate to:
+- Databricks Support
+- Azure Support
+- Check Databricks documentation on service principals
+
+====================================================================
