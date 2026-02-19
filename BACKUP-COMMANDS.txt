@@ -1,0 +1,29 @@
+IF THE SCRIPT FAILS, COPY/PASTE THESE 3 COMMANDS IN POWERSHELL:
+
+
+========================================
+COMMAND 1: CONNECT
+========================================
+
+Connect-MgGraph -Scopes "User.Read.All" -UseDeviceCode
+
+(A code will appear - go to https://microsoft.com/devicelogin and enter it)
+
+
+========================================
+COMMAND 2: EXPORT CSV
+========================================
+
+Get-MgUser -All -Property DisplayName,UserPrincipalName,Mail,AccountEnabled,PasswordPolicies,Department,JobTitle,CreatedDateTime,Id | Where-Object {$_.PasswordPolicies -like "*DisablePasswordExpiration*"} | Export-Csv -Path "$env:USERPROFILE\Desktop\PasswordNeverExpires.csv" -NoTypeInformation
+
+
+========================================
+COMMAND 3: OPEN CSV
+========================================
+
+Start-Process "$env:USERPROFILE\Desktop\PasswordNeverExpires.csv"
+
+
+========================================
+DONE - SEND TO TONY
+========================================
