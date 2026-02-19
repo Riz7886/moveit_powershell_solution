@@ -1,0 +1,21 @@
+# BACKUP PLAN - MANUAL COMMANDS FOR TONY
+
+If the script fails, just copy/paste these 3 commands in PowerShell:
+
+## COMMAND 1: Connect
+Connect-MgGraph -Scopes "User.Read.All" -UseDeviceAuthentication
+
+(A code will appear - go to https://microsoft.com/devicelogin and enter it)
+
+
+## COMMAND 2: Get users and export
+Get-MgUser -All -Property DisplayName,UserPrincipalName,Mail,AccountEnabled,PasswordPolicies,Department,JobTitle,CreatedDateTime,Id | Where-Object {$_.PasswordPolicies -like "*DisablePasswordExpiration*"} | Select-Object DisplayName,UserPrincipalName,Mail,AccountEnabled,PasswordPolicies,Department,JobTitle,CreatedDateTime,Id | Export-Csv -Path "$env:USERPROFILE\Desktop\PasswordNeverExpires.csv" -NoTypeInformation
+
+
+## COMMAND 3: Open CSV
+Start-Process "$env:USERPROFILE\Desktop\PasswordNeverExpires.csv"
+
+
+## THAT'S IT - DONE!
+
+Send the CSV to Tony Schlak.
