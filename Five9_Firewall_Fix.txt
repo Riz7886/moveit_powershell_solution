@@ -1,0 +1,35 @@
+Five9 Softphone - Firewall Issue Resolution
+
+Hi Tony,
+
+THE PROBLEM:
+Windows Firewall is blocking Five9 Softphone on multiple user computers. When users try to access Five9 through Salesforce, they get a Windows Security popup asking for permission, but they don't have admin rights to allow it.
+
+
+QUICK FIX (For Individual Users):
+
+If you have admin rights on their computers, run these PowerShell commands as administrator on each affected machine:
+
+New-NetFirewallRule -DisplayName "Five9 Softphone" -Direction Inbound -Program "C:\Program Files\Five9\Five9 Softphone\Five9Softphone.exe" -Action Allow
+
+New-NetFirewallRule -DisplayName "Five9 Softphone Outbound" -Direction Outbound -Program "C:\Program Files\Five9\Five9 Softphone\Five9Softphone.exe" -Action Allow
+
+
+OR manually:
+1. Go to Windows Firewall settings
+2. Click "Allow an app through firewall"
+3. Click "Change settings" (requires admin)
+4. Find "Five9 Softphone" and check both Private and Public boxes
+5. If not listed, click "Allow another app" and browse to: C:\Program Files\Five9\Five9 Softphone\Five9Softphone.exe
+
+
+LONG-TERM FIX (For All Users):
+
+Deploy this via Group Policy so all users get the firewall exception automatically. You can add Five9 Softphone to the approved applications list in your firewall policies, or we can create a GPO script that automatically configures this for all affected users.
+
+
+NEED HELP?
+
+Let me know if you want a script that can be deployed to all affected users at once, or if you need GPO instructions for your IT team to implement organization-wide.
+
+This should resolve the issue for all users trying to access Five9 through Salesforce.
