@@ -1,0 +1,23 @@
+Subject: Databricks Cost Analysis - Runaway Scenarios & SQL Warehouse Upgrade Costs
+
+Hi Preyash,
+
+Attached is the complete Databricks cost analysis you requested.
+
+The report covers:
+- Current baseline costs ($1,480/month)
+- Minimum scenario with optimizations ($1,080/month - saves $400)
+- Maximum runaway scenario ($9,450/month - potential $7,970 increase)
+- SQL Warehouse upgrade costs (one tier higher):
+  - X-Small: +$250/month
+  - Small: +$550/month
+- SQL performance optimization recommendations (zero cost)
+
+Key Recommendation:
+Start with the free optimizations in Section 5 (can achieve 2-5x faster queries). Only upgrade SQL Warehouse tier if performance is still slow after 2-4 weeks.
+
+Please review the attached HTML report. Let me know if you need any clarification or have questions.
+
+Thanks,
+Syed Rizvi
+Senior Systems Administrator
