@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PYX Databricks Cost Analysis Report</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Calibri', 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            padding: 30px;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white;
+            padding: 40px;
+            border-bottom: 5px solid #1e40af;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .header h2 {
+            font-size: 18px;
+            font-weight: 400;
+            opacity: 0.95;
+        }
+        
+        .document-info {
+            background-color: #f8fafc;
+            border: 2px solid #cbd5e1;
+            padding: 25px;
+            margin: 0;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 15px;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #475569;
+        }
+        
+        .info-value {
+            color: #1e293b;
+        }
+        
+        .section {
+            border: 2px solid #cbd5e1;
+            margin: 0;
+            border-top: none;
+        }
+        
+        .section-header {
+            background-color: #1e40af;
+            color: white;
+            padding: 15px 25px;
+            font-size: 18px;
+            font-weight: 600;
+            border-bottom: 2px solid #1e3a8a;
+        }
+        
+        .section-content {
+            padding: 25px;
+        }
+        
+        .subsection {
+            margin-bottom: 30px;
+        }
+        
+        .subsection-title {
+            background-color: #e0e7ff;
+            color: #1e40af;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            border-left: 4px solid #1e40af;
+            margin-bottom: 15px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            background-color: white;
+        }
+        
+        table th {
+            background-color: #1e40af;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border: 1px solid #1e3a8a;
+        }
+        
+        table td {
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+        }
+        
+        table tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+        
+        table tr:hover {
+            background-color: #e0e7ff;
+        }
+        
+        .summary-box {
+            background-color: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-left: 5px solid #f59e0b;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .summary-box-title {
+            font-weight: 600;
+            color: #92400e;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .warning-box {
+            background-color: #fee2e2;
+            border: 2px solid #dc2626;
+            border-left: 5px solid #dc2626;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .warning-box-title {
+            font-weight: 600;
+            color: #991b1b;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .success-box {
+            background-color: #d1fae5;
+            border: 2px solid #059669;
+            border-left: 5px solid #059669;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .success-box-title {
+            font-weight: 600;
+            color: #065f46;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .info-box {
+            background-color: #dbeafe;
+            border: 2px solid #2563eb;
+            border-left: 5px solid #2563eb;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .info-box-title {
+            font-weight: 600;
+            color: #1e40af;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .cost-highlight {
+            font-weight: 700;
+            color: #1e40af;
+            font-size: 18px;
+        }
+        
+        .cost-negative {
+            color: #dc2626;
+            font-weight: 700;
+        }
+        
+        .cost-positive {
+            color: #059669;
+            font-weight: 700;
+        }
+        
+        .code-block {
+            background-color: #1e293b;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #475569;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        
+        .recommendation-list {
+            background-color: #f0fdf4;
+            border: 2px solid #059669;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .recommendation-list ol {
+            margin-left: 25px;
+        }
+        
+        .recommendation-list li {
+            margin: 10px 0;
+            line-height: 1.8;
+        }
+        
+        .footer {
+            background-color: #1e293b;
+            color: white;
+            padding: 25px;
+            text-align: center;
+            border-top: 5px solid #0f172a;
+        }
+        
+        .footer-info {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        
+        .page-break {
+            page-break-after: always;
+        }
+        
+        @media print {
+            body {
+                background-color: white;
+                padding: 0;
+            }
+            
+            .container {
+                box-shadow: none;
+            }
+            
+            .section {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <h1>DATABRICKS COST ANALYSIS & SQL PERFORMANCE OPTIMIZATION</h1>
+            <h2>PYX Health - Azure Databricks Environments</h2>
+        </div>
+        
+        <!-- DOCUMENT INFO -->
+        <div class="document-info">
+            <div class="info-grid">
+                <div class="info-label">Prepared By:</div>
+                <div class="info-value">Syed Rizvi, Senior Systems Administrator</div>
+                
+                <div class="info-label">Prepared For:</div>
+                <div class="info-value">Preyash Patel, PYX Health</div>
+                
+                <div class="info-label">Date:</div>
+                <div class="info-value">February 20, 2026</div>
+                
+                <div class="info-label">Subject:</div>
+                <div class="info-value">Databricks Compute Cost Analysis & SQL Warehouse Performance</div>
+                
+                <div class="info-label">Environments:</div>
+                <div class="info-value">PreProd & Production (pyx-warehouse-prod, pyxlake-databricks)</div>
+                
+                <div class="info-label">Document Version:</div>
+                <div class="info-value">1.0</div>
+            </div>
+        </div>
+        
+        <!-- EXECUTIVE SUMMARY -->
+        <div class="section">
+            <div class="section-header">EXECUTIVE SUMMARY</div>
+            <div class="section-content">
+                <p style="margin-bottom: 20px;">
+                    This document provides a comprehensive analysis of Databricks compute costs across PYX Health environments, 
+                    including minimum and maximum utilization scenarios, SQL Warehouse upgrade cost projections, and performance 
+                    optimization recommendations.
+                </p>
+                
+                <div class="subsection">
+                    <div class="subsection-title">Analysis Components</div>
+                    <ul style="margin-left: 25px; line-height: 2;">
+                        <li>Current cost baseline analysis</li>
+                        <li>Minimum utilization scenario (optimized configuration)</li>
+                        <li>Maximum utilization scenario (runaway cost projection)</li>
+                        <li>SQL Warehouse tier upgrade cost analysis</li>
+                        <li>SQL query performance optimization strategies</li>
+                        <li>Cost control and monitoring recommendations</li>
+                    </ul>
+                </div>
+                
+                <div class="subsection">
+                    <div class="subsection-title">Current Cost Baseline Summary</div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Environment</th>
+                                <th>Resource</th>
+                                <th>Previous Cost</th>
+                                <th>New Cost</th>
+                                <th>Change</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td rowspan="2"><strong>PreProd</strong></td>
+                                <td>Processing Cluster</td>
+                                <td>$175</td>
+                                <td>$350</td>
+                                <td class="cost-negative">+$175</td>
+                            </tr>
+                            <tr>
+                                <td>Other Resources</td>
+                                <td>$300</td>
+                                <td>$300</td>
+                                <td>$0</td>
+                            </tr>
+                            <tr>
+                                <td rowspan="3"><strong>Production</strong></td>
+                                <td>Processing Cluster</td>
+                                <td>$175</td>
+                                <td>$350</td>
+                                <td class="cost-negative">+$175</td>
+                            </tr>
+                            <tr>
+                                <td>SQL Warehouses</td>
+                                <td>$480</td>
+                                <td>$480</td>
+                                <td>$0</td>
+                            </tr>
+                            <tr>
+                                <td>Other Resources</td>
+                                <td>$100</td>
+                                <td>$100</td>
+                                <td>$0</td>
+                            </tr>
+                            <tr style="background-color: #dbeafe; font-weight: 600;">
+                                <td colspan="2"><strong>TOTAL (Both Environments)</strong></td>
+                                <td>$1,130</td>
+                                <td class="cost-highlight">$1,480</td>
+                                <td class="cost-negative">+$350</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SECTION 1: COST COMPONENT ANALYSIS -->
+        <div class="section">
+            <div class="section-header">SECTION 1: COST COMPONENT ANALYSIS</div>
+            <div class="section-content">
+                <div class="subsection">
+                    <div class="subsection-title">1.1 Databricks Cost Components</div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Component</th>
+                                <th>Environment</th>
+                                <th>Impact Level</th>
+                                <th>Monthly Cost Range</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Processing Clusters</td>
+                                <td>PreProd + Production</td>
+                                <td style="background-color: #fee2e2; font-weight: 600;">High</td>
+                                <td>$350 each</td>
+                            </tr>
+                            <tr>
+                                <td>SQL Warehouses</td>
+                                <td>Production only</td>
+                                <td style="background-color: #fee2e2; font-weight: 600;">High</td>
+                                <td>$480 total</td>
+                            </tr>
+                            <tr>
+                                <td>DBU Consumption</td>
+                                <td>All compute</td>
+                                <td style="background-color: #fee2e2; font-weight: 600;">High</td>
+                                <td>Usage-based</td>
+                            </tr>
+                            <tr>
+                                <td>Cluster Runtime</td>
+                                <td>All environments</td>
+                                <td style="background-color: #fef3c7; font-weight: 600;">Medium</td>
+                                <td>Variable</td>
+                            </tr>
+                            <tr>
+                                <td>Storage (Delta Lake)</td>
+                                <td>All environments</td>
+                                <td style="background-color: #d1fae5; font-weight: 600;">Low</td>
+                                <td>$50-$100</td>
+                            </tr>
+                            <tr>
+                                <td>Network Egress</td>
+                                <td>All environments</td>
+                                <td style="background-color: #d1fae5; font-weight: 600;">Low</td>
+                                <td>$20-$50</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SECTION 2: UTILIZATION SCENARIOS -->
+        <div class="section">
+            <div class="section-header">SECTION 2: UTILIZATION SCENARIOS</div>
+            <div class="section-content">
+                
+                <!-- MINIMUM SCENARIO -->
+                <div class="subsection">
+                    <div class="subsection-title">2.1 SCENARIO 1 - Minimum Utilization (Optimized Configuration)</div>
+                    
+                    <div class="info-box">
+                        <div class="info-box-title">Scenario Assumptions</div>
+                        <ul style="margin-left: 25px; line-height: 1.8;">
+                            <li>Clusters operate during business hours only (8 hours/day, Monday-Friday)</li>
+                            <li>Auto-termination enabled with 15-30 minute idle timeout</li>
+                            <li>Autoscaling configured at minimum worker count</li>
+                            <li>No ad-hoc clusters left running</li>
+                            <li>SQL Warehouses configured with 15-minute auto-stop</li>
+                            <li>Queries optimized for performance</li>
+                            <li>Scheduled jobs configured for efficient execution</li>
+                        </ul>
+                    </div>
+                    
+                    <p style="margin: 15px 0; font-weight: 600;">Monthly Cost Breakdown - Minimum Utilization:</p>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Environment</th>
+                                <th>Resource</th>
+                                <th>Configuration</th>
+                                <th>Hours/Month</th>
+                                <th>Est. Cost</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td rowspan="2"><strong>PreProd</strong></td>
+                                <td>Processing Cluster</td>
+                                <td>Small (2 workers)</td>
+                                <td>170 hrs</td>
+                                <td>$200</td>
+                            </tr>
+                            <tr>
+                                <td>Other Resources</td>
+                                <td>Minimal usage</td>
+                                <td>-</td>
+                                <td>$150</td>
+                            </tr>
+                            <tr style="background-color: #e0e7ff; font-weight: 600;">
+                                <td colspan="4">PreProd Subtotal</td>
+                                <td>$350</td>
+                            </tr>
+                            <tr>
+                                <td rowspan="4"><strong>Production</strong></td>
+                                <td>Processing Cluster</td>
+                                <td>Small (2-4 workers)</td>
+                                <td>180 hrs</td>
+                                <td>$250</td>
+                            </tr>
+                            <tr>
+                                <td>SQL Warehouse (primary)</td>
+                                <td>2X-Small</td>
+                                <td>200 hrs</td>
+                                <td>$300</td>
+                            </tr>
+                            <tr>
+                                <td>SQL Warehouse (backup)</td>
+                                <td>X-Small</td>
+                                <td>80 hrs</td>
+                                <td>$100</td>
+                            </tr>
+                            <tr>
+                                <td>Other Resources</td>
+                                <td>Minimal</td>
+                                <td>-</td>
+                                <td>$80</td>
+                            </tr>
+                            <tr style="background-color: #e0e7ff; font-weight: 600;">
+                                <td colspan="4">Production Subtotal</td>
+                                <td>$730</td>
+                            </tr>
+                            <tr style="background-color: #d1fae5; font-weight: 700; font-size: 16px;">
+                                <td colspan="4">TOTAL MINIMUM UTILIZATION</td>
+                                <td class="cost-highlight" style="color: #059669;">$1,080/month</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="success-box">
+                        <div class="success-box-title">Potential Savings</div>
+                        <p style="font-size: 18px; font-weight: 600;">
+                            Savings vs Current Baseline: <span class="cost-positive">$400 per month</span>
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- MAXIMUM SCENARIO -->
+                <div class="subsection page-break">
+                    <div class="subsection-title">2.2 SCENARIO 2 - Maximum Utilization (Runaway Cost Projection)</div>
+                    
+                    <div class="warning-box">
+                        <div class="warning-box-title">Scenario Assumptions</div>
+                        <ul style="margin-left: 25px; line-height: 1.8;">
+                            <li>Clusters running continuously (24 hours/day, 7 days/week)</li>
+                            <li>Autoscaling configured at maximum worker count</li>
+                            <li>Multiple ad-hoc clusters created and left running</li>
+                            <li>SQL Warehouses running continuously without auto-stop</li>
+                            <li>Inefficient queries causing extended runtimes</li>
+                            <li>Oversized cluster selections for workload requirements</li>
+                            <li>No query optimization implemented</li>
+                        </ul>
+                    </div>
+                    
+                    <p style="margin: 15px 0; font-weight: 600;">Monthly Cost Breakdown - Maximum Utilization:</p>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Environment</th>
+                                <th>Resource</th>
+                                <th>Configuration</th>
+                                <th>Hours/Month</th>
+                                <th>Est. Cost</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td rowspan="3"><strong>PreProd</strong></td>
+                                <td>Processing Cluster</td>
+                                <td>Large (8 workers)</td>
+                                <td>730 hrs</td>
+                                <td>$1,600</td>
+                            </tr>
+                            <tr>
+                                <td>Ad-hoc Clusters</td>
+                                <td>Multiple (3-5 clusters)</td>
+                                <td>400 hrs</td>
+                                <td>$550</td>
+                            </tr>
+                            <tr>
+                                <td>Other Resources</td>
+                                <td>High usage</td>
+                                <td>-</td>
+                                <td>$250</td>
+                            </tr>
+                            <tr style="background-color: #fee2e2; font-weight: 600;">
+                                <td colspan="4">PreProd Subtotal</td>
+                                <td>$2,400</td>
+                            </tr>
+                            <tr>
+                                <td rowspan="5"><strong>Production</strong></td>
+                                <td>Processing Cluster</td>
+                                <td>Large (8-12 workers)</td>
+                                <td>730 hrs</td>
+                                <td>$2,200</td>
+                            </tr>
+                            <tr>
+                                <td>SQL Warehouse (primary)</td>
+                                <td>Large</td>
+                                <td>730 hrs</td>
+                                <td>$2,800</td>
+                            </tr>
+                            <tr>
+                                <td>SQL Warehouse (backup)</td>
+                                <td>Medium</td>
+                                <td>730 hrs</td>
+                                <td>$1,400</td>
+                            </tr>
+                            <tr>
+                                <td>Ad-hoc Clusters</td>
+                                <td>Multiple (2-4 clusters)</td>
+                                <td>300 hrs</td>
+                                <td>$450</td>
+                            </tr>
+                            <tr>
+                                <td>Other Resources</td>
+                                <td>High usage</td>
+                                <td>-</td>
+                                <td>$200</td>
+                            </tr>
+                            <tr style="background-color: #fee2e2; font-weight: 600;">
+                                <td colspan="4">Production Subtotal</td>
+                                <td>$7,050</td>
+                            </tr>
+                            <tr style="background-color: #fee2e2; font-weight: 700; font-size: 16px;">
+                                <td colspan="4">TOTAL MAXIMUM UTILIZATION</td>
+                                <td class="cost-highlight" style="color: #dc2626;">$9,450/month</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="warning-box">
+                        <div class="warning-box-title">Critical Cost Alert</div>
+                        <p style="font-size: 18px; font-weight: 600;">
+                            Cost Increase vs Current Baseline: <span class="cost-negative">$7,970 per month</span>
+                        </p>
+                        <p style="margin-top: 10px; font-size: 16px;">
+                            This represents a <strong>6.4X increase</strong> from current baseline expenditure.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SECTION 3: RUNAWAY COST TRIGGERS -->
+        <div class="section page-break">
+            <div class="section-header">SECTION 3: RUNAWAY COST TRIGGERS AND MITIGATION</div>
+            <div class="section-content">
+                <div class="subsection">
+                    <div class="subsection-title">3.1 Critical Cost Escalation Factors</div>
+                    
+                    <div class="warning-box">
+                        <div class="warning-box-title">TRIGGER 1: Clusters Running Continuously (24/7)</div>
+                        <p><strong>Monthly Impact:</strong> $2,000 - $4,000</p>
+                        <p style="margin-top: 10px;"><strong>Root Causes:</strong></p>
+                        <ul style="margin-left: 25px; margin-top: 5px;">
+                            <li>Auto-termination disabled or timeout configured above 2 hours</li>
+                            <li>Interactive clusters left running overnight and weekends</li>
+                            <li>Job clusters configured with "keep alive after completion" setting</li>
+                        </ul>
+                        <p style="margin-top: 15px; font-weight: 600;">Cost Example:</p>
+                        <table style="margin-top: 10px;">
+                            <thead>
+                                <tr>
+                                    <th>Configuration</th>
+                                    <th>Hours/Month</th>
+                                    <th>Monthly Cost</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Small Processing Cluster (Business hours)</td>
+                                    <td>170 hrs</td>
+                                    <td style="color: #059669; font-weight: 600;">$250</td>
+                                </tr>
+                                <tr>
+                                    <td>Same cluster (Running 24/7)</td>
+                                    <td>730 hrs</td>
+                                    <td style="color: #dc2626; font-weight: 600;">$1,100</td>
+                                </tr>
+                                <tr style="background-color: #fee2e2;">
+                                    <td colspan="2"><strong>Cost Waste</strong></td>
+                                    <td><strong>$850/month</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="warning-box">
+                        <div class="warning-box-title">TRIGGER 2: Oversized Cluster Configuration</div>
+                        <p><strong>Monthly Impact:</strong> $1,000 - $2,500</p>
+                        <p style="margin-top: 10px;"><strong>Root Causes:</strong></p>
+                        <ul style="margin-left: 25px; margin-top: 5px;">
+                            <li>Large cluster size selected for small workload requirements</li>
+                            <li>Autoscaling not utilized (fixed large cluster size)</li>
+                            <li>Maximum worker count set excessively high in autoscaling configuration</li>
+                        </ul>
+                        <p style="margin-top: 15px; font-weight: 600;">Cost Example:</p>
+                        <table style="margin-top: 10px;">
+                            <thead>
+                                <tr>
+                                    <th>Configuration</th>
+                                    <th>Concurrent Users</th>
+                                    <th>Monthly Cost</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>SQL Warehouse - Right Size (2X-Small, 2 workers)</td>
+                                    <td>5 users</td>
+                                    <td style="color: #059669; font-weight: 600;">$300</td>
+                                </tr>
+                                <tr>
+                                    <td>SQL Warehouse - Oversized (Large, 8 workers)</td>
+                                    <td>5 users</td>
+                                    <td style="color: #dc2626; font-weight: 600;">$1,400</td>
+                                </tr>
+                                <tr style="background-color: #fee2e2;">
+                                    <td colspan="2"><strong>Cost Waste</strong></td>
+                                    <td><strong>$1,100/month</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="warning-box">
+                        <div class="warning-box-title">TRIGGER 3: Inefficient SQL Query Execution</div>
+                        <p><strong>Monthly Impact:</strong> $500 - $1,500</p>
+                        <p style="margin-top: 10px;"><strong>Root Causes:</strong></p>
+                        <ul style="margin-left: 25px; margin-top: 5px;">
+                            <li>Full table scans instead of partition-based queries</li>
+                            <li>Missing or unused database indexes</li>
+                            <li>Queries pulling unnecessary columns (SELECT * operations)</li>
+                            <li>Query result caching not enabled</li>
+                            <li>Complex joins on large unoptimized tables</li>
+                        </ul>
+                        <p style="margin-top: 15px; font-weight: 600;">Cost Example:</p>
+                        <table style="margin-top: 10px;">
+                            <thead>
+                                <tr>
+                                    <th>Query Type</th>
+                                    <th>Runtime</th>
+                                    <th>Cost/Execution</th>
+                                    <th>Monthly Cost (30 runs)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Optimized daily report query</td>
+                                    <td>2 minutes</td>
+                                    <td>$0.05</td>
+                                    <td style="color: #059669; font-weight: 600;">$1.50</td>
+                                </tr>
+                                <tr>
+                                    <td>Unoptimized query</td>
+                                    <td>1 hour</td>
+                                    <td>$1.50</td>
+                                    <td style="color: #dc2626; font-weight: 600;">$45</td>
+                                </tr>
+                                <tr style="background-color: #fee2e2;">
+                                    <td colspan="3"><strong>Cost Waste per query</strong></td>
+                                    <td><strong>$43.50/month</strong></td>
+                                </tr>
+                                <tr style="background-color: #fef3c7;">
+                                    <td colspan="3"><strong>Impact across 10 slow queries</strong></td>
+                                    <td><strong>$435/month</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="warning-box">
+                        <div class="warning-box-title">TRIGGER 4: Abandoned Ad-Hoc Clusters</div>
+                        <p><strong>Monthly Impact:</strong> $300 - $1,000</p>
+                        <p style="margin-top: 10px;"><strong>Root Causes:</strong></p>
+                        <ul style="margin-left: 25px; margin-top: 5px;">
+                            <li>Data science/analytics teams create clusters for testing</li>
+                            <li>Clusters not terminated after work session completion</li>
+                            <li>No organization-wide auto-termination policy enforcement</li>
+                        </ul>
+                        <p style="margin-top: 15px; font-weight: 600;">Cost Example:</p>
+                        <table style="margin-top: 10px;">
+                            <thead>
+                                <tr>
+                                    <th>Scenario</th>
+                                    <th>Number of Clusters</th>
+                                    <th>Monthly Cost</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Clusters properly terminated after use</td>
+                                    <td>3 clusters</td>
+                                    <td style="color: #059669; font-weight: 600;">$50</td>
+                                </tr>
+                                <tr>
+                                    <td>Same clusters running continuously for 30 days</td>
+                                    <td>3 clusters</td>
+                                    <td style="color: #dc2626; font-weight: 600;">$550</td>
+                                </tr>
+                                <tr style="background-color: #fee2e2;">
+                                    <td colspan="2"><strong>Cost Waste</strong></td>
+                                    <td><strong>$500/month</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SECTION 4: SQL WAREHOUSE UPGRADE ANALYSIS -->
+        <div class="section page-break">
+            <div class="section-header">SECTION 4: SQL WAREHOUSE TIER UPGRADE ANALYSIS</div>
+            <div class="section-content">
+                <div class="subsection">
+                    <div class="subsection-title">4.1 Current SQL Warehouse Configuration</div>
+                    <div class="info-box">
+                        <div class="info-box-title">Production SQL Warehouses: $480/month total</div>
+                        <p><strong>Estimated Current Configuration:</strong></p>
+                        <ul style="margin-left: 25px; margin-top: 10px;">
+                            <li>Primary Warehouse: 2X-Small (1 cluster, approximately 200 hours/month) = $300</li>
+                            <li>Secondary Warehouse: X-Small (1 cluster, approximately 80 hours/month) = $180</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="subsection">
+                    <div class="subsection-title">4.2 Cost Analysis for Tier Upgrades</div>
+                    
+                    <p style="font-weight: 600; margin-bottom: 10px;">OPTION A: Upgrade Primary Warehouse Only</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Current Size</th>
+                                <th>Upgraded Size</th>
+                                <th>Current Monthly Cost</th>
+                                <th>New Monthly Cost</th>
+                                <th>Monthly Increase</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2X-Small</td>
+                                <td><strong>X-Small</strong></td>
+                                <td>$300</td>
+                                <td>$550</td>
+                                <td class="cost-negative">+$250</td>
+                            </tr>
+                            <tr>
+                                <td>2X-Small</td>
+                                <td><strong>Small</strong></td>
+                                <td>$300</td>
+                                <td>$850</td>
+                                <td class="cost-negative">+$550</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <p style="font-weight: 600; margin: 25px 0 10px 0;">OPTION B: Upgrade Both Warehouses</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Warehouse</th>
+                                <th>Current Size</th>
+                                <th>Upgraded Size</th>
+                                <th>Current Cost</th>
+                                <th>New Cost</th>
+                                <th>Monthly Increase</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Primary</td>
+                                <td>2X-Small</td>
+                                <td><strong>X-Small</strong></td>
+                                <td>$300</td>
+                                <td>$550</td>
+                                <td class="cost-negative">+$250</td>
+                            </tr>
+                            <tr>
+                                <td>Secondary</td>
+                                <td>X-Small</td>
+                                <td><strong>Small</strong></td>
+                                <td>$180</td>
+                                <td>$350</td>
+                                <td class="cost-negative">+$170</td>
+                            </tr>
+                            <tr style="background-color: #fef3c7; font-weight: 600;">
+                                <td colspan="3"><strong>TOTAL</strong></td>
+                                <td>$480</td>
+                                <td>$900</td>
+                                <td class="cost-negative">+$420</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="subsection">
+                    <div class="subsection-title">4.3 Azure Databricks SQL Warehouse Pricing Reference</div>
+                    <p style="margin-bottom: 10px; font-style: italic;">Based on Azure East US 2 pricing (typical for PYX Health deployments)</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Warehouse Size</th>
+                                <th>DBUs/Hour</th>
+                                <th>$/Hour (approx)</th>
+                                <th>200 hrs/mo</th>
+                                <th>400 hrs/mo</th>
+                                <th>730 hrs/mo (24/7)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>2X-Small</strong></td>
+                                <td>2</td>
+                                <td>$0.44</td>
+                                <td>$88</td>
+                                <td>$176</td>
+                                <td>$321</td>
+                            </tr>
+                            <tr>
+                                <td><strong>X-Small</strong></td>
+                                <td>4</td>
+                                <td>$0.88</td>
+                                <td>$176</td>
+                                <td>$352</td>
+                                <td>$642</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Small</strong></td>
+                                <td>8</td>
+                                <td>$1.76</td>
+                                <td>$352</td>
+                                <td>$704</td>
+                                <td>$1,285</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Medium</strong></td>
+                                <td>16</td>
+                                <td>$3.52</td>
+                                <td>$704</td>
+                                <td>$1,408</td>
+                                <td>$2,570</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Large</strong></td>
+                                <td>32</td>
+                                <td>$7.04</td>
+                                <td>$1,408</td>
+                                <td>$2,816</td>
+                                <td>$5,139</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p style="margin-top: 10px; font-size: 13px; font-style: italic;">
+                        Note: Actual costs may vary based on specific Azure subscription pricing, geographic region, 
+                        auto-stop settings, and actual usage hours.
+                    </p>
+                </div>
+                
+                <div class="subsection">
+                    <div class="subsection-title">4.4 Tier Upgrade Recommendations by Use Case</div>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>User Base</th>
+                                <th>Current Config</th>
+                                <th>Recommended Upgrade</th>
+                                <th>Monthly Cost Increase</th>
+                                <th>Performance Benefit</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>5-10 Concurrent Users</td>
+                                <td>2X-Small<br>($300/month)</td>
+                                <td>X-Small<br>($550/month)</td>
+                                <td class="cost-negative">+$250</td>
+                                <td>2x performance improvement<br>Better concurrency handling</td>
+                            </tr>
+                            <tr>
+                                <td>10-20 Concurrent Users<br>or Slow Query Performance</td>
+                                <td>2X-Small<br>($300/month)</td>
+                                <td>Small<br>($850/month)</td>
+                                <td class="cost-negative">+$550</td>
+                                <td>4x performance improvement<br>Handles significantly more users</td>
+                            </tr>
+                            <tr>
+                                <td>20+ Concurrent Users</td>
+                                <td>2X-Small<br>($300/month)</td>
+                                <td>Medium<br>($1,400/month)</td>
+                                <td class="cost-negative">+$1,100</td>
+                                <td>8x performance improvement<br>Enterprise-grade capacity</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SECTION 5: SQL PERFORMANCE OPTIMIZATION -->
+        <div class="section page-break">
+            <div class="section-header">SECTION 5: SQL QUERY PERFORMANCE OPTIMIZATION</div>
+            <div class="section-content">
+                <div class="subsection">
+                    <div class="subsection-title">5.1 Addressing SQL Warehouse Performance Issues</div>
+                    <div class="info-box">
+                        <div class="info-box-title">Common Performance Complaints</div>
+                        <ul style="margin-left: 25px;">
+                            <li>Extended query execution times</li>
+                            <li>Slow dashboard loading</li>
+                            <li>Report timeout errors</li>
+                            <li>User-reported delays in data access</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="subsection">
+                    <div class="subsection-title">5.2 Performance Optimization Strategies (Zero Cost Implementation)</div>
+                    
+                    <div class="success-box">
+                        <div class="success-box-title">OPTIMIZATION 1: Query Structure Refinement</div>
+                        <p><strong>Problem:</strong> Full table scans on large datasets</p>
+                        <p style="margin-top: 10px;"><strong>Solution - Before:</strong></p>
+                        <div class="code-block">SELECT * FROM large_table WHERE date = '2026-02-20'</div>
+                        <p style="margin-top: 10px;"><strong>Solution - After:</strong></p>
+                        <div class="code-block">SELECT col1, col2, col3 
+FROM large_table 
+WHERE date_partition = '2026-02-20'
+AND col1 IS NOT NULL</div>
+                        <p style="margin-top: 10px;"><strong>Performance Impact:</strong> 5-10x faster query execution, no cost increase</p>
+                    </div>
+                    
+                    <div class="success-box">
+                        <div class="success-box-title">OPTIMIZATION 2: Query Result Caching</div>
+                        <p><strong>Problem:</strong> Identical queries re-execute and recompute results</p>
+                        <p style="margin-top: 10px;"><strong>Implementation:</strong></p>
+                        <ol style="margin-left: 25px; margin-top: 5px;">
+                            <li>Navigate to Settings → SQL Warehouse → Advanced</li>
+                            <li>Result Caching: Enable</li>
+                            <li>Configure cache duration: 24 hours</li>
+                        </ol>
+                        <p style="margin-top: 10px;"><strong>Performance Impact:</strong> Instant results for repeated queries, reduces DBU consumption</p>
+                    </div>
+                    
+                    <div class="success-box">
+                        <div class="success-box-title">OPTIMIZATION 3: Delta Lake Table Optimization</div>
+                        <p><strong>Problem:</strong> Small file accumulation causing slow read performance</p>
+                        <p style="margin-top: 10px;"><strong>Implementation (run weekly on large tables):</strong></p>
+                        <div class="code-block">-- Standard optimization
+OPTIMIZE your_table_name;
+
+-- For frequently updated tables
+OPTIMIZE your_table_name ZORDER BY (commonly_filtered_column);</div>
+                        <p style="margin-top: 10px;"><strong>Performance Impact:</strong> 2-3x faster queries, improved compression</p>
+                    </div>
+                    
+                    <div class="success-box">
+                        <div class="success-box-title">OPTIMIZATION 4: Materialized View Implementation</div>
+                        <p><strong>Problem:</strong> Complex joins and aggregations execute on every query</p>
+                        <p style="margin-top: 10px;"><strong>Implementation:</strong></p>
+                        <div class="code-block">-- Create pre-computed view for heavy queries
+CREATE OR REFRESH MATERIALIZED VIEW daily_summary AS
+SELECT 
+  date,
+  category,
+  SUM(amount) as total_amount,
+  COUNT(*) as record_count
+FROM transactions
+GROUP BY date, category;
+
+-- Query using materialized view
+SELECT * FROM daily_summary WHERE date = '2026-02-20';</div>
+                        <p style="margin-top: 10px;"><strong>Performance Impact:</strong> 10-100x faster execution, runs on predefined schedule</p>
+                    </div>
+                    
+                    <div class="success-box">
+                        <div class="success-box-title">OPTIMIZATION 5: Strategic Index Creation</div>
+                        <p><strong>Problem:</strong> Slow lookup operations on large tables</p>
+                        <p style="margin-top: 10px;"><strong>Implementation (for Delta tables in Unity Catalog):</strong></p>
+                        <div class="code-block">CREATE BLOOMFILTER INDEX ON table_name(frequently_filtered_column);</div>
+                        <p style="margin-top: 10px;"><strong>Performance Impact:</strong> 3-5x faster point lookups</p>
+                    </div>
+                    
+                    <div class="success-box">
+                        <div class="success-box-title">OPTIMIZATION 6: SQL Warehouse Auto-Scaling</div>
+                        <p><strong>Problem:</strong> Query queuing during peak usage periods</p>
+                        <p style="margin-top: 10px;"><strong>Configuration Settings:</strong></p>
+                        <table style="margin-top: 10px;">
+                            <thead>
+                                <tr>
+                                    <th>Setting</th>
+                                    <th>Current</th>
+                                    <th>Recommended</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Cluster Configuration</td>
+                                    <td>1 cluster, fixed</td>
+                                    <td>Min 1, Max 2-3 clusters (auto-scale)</td>
+                                </tr>
+                                <tr>
+                                    <td>Minimum Clusters</td>
+                                    <td>-</td>
+                                    <td>1</td>
+                                </tr>
+                                <tr>
+                                    <td>Maximum Clusters</td>
+                                    <td>-</td>
+                                    <td>2 (moderate load) or 3 (high load)</td>
+                                </tr>
+                                <tr>
+                                    <td>Auto-stop Timeout</td>
+                                    <td>-</td>
+                                    <td>15 minutes</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p style="margin-top: 10px;"><strong>Cost Impact:</strong> Additional clusters billed only during active use</p>
+                        <p><strong>Performance Impact:</strong> Eliminates query queuing, improved user experience</p>
+                    </div>
+                </div>
+                
+                <div class="subsection">
+                    <div class="subsection-title">5.3 Query Performance Monitoring</div>
+                    <p style="margin-bottom: 10px;">Execute the following query to identify performance bottlenecks:</p>
+                    <div class="code-block">SELECT 
+  query_text,
+  execution_time_ms / 1000.0 as execution_seconds,
+  rows_produced,
+  user_name,
+  start_time
+FROM system.query.history
+WHERE warehouse_id = '&lt;your_warehouse_id&gt;'
+  AND start_time &gt; current_date() - 7
+ORDER BY execution_time_ms DESC
+LIMIT 20;</div>
+                    <p style="margin-top: 15px;"><strong>Analysis Focus:</strong></p>
+                    <ul style="margin-left: 25px;">
+                        <li>Queries exceeding 30 seconds execution time</li>
+                        <li>Queries performing full table scans</li>
+                        <li>Frequently executed queries without caching</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SECTION 6: COST CONTROL STRATEGIES -->
+        <div class="section page-break">
+            <div class="section-header">SECTION 6: COST CONTROL AND MONITORING STRATEGIES</div>
+            <div class="section-content">
+                <div class="subsection">
+                    <div class="subsection-title">6.1 Immediate Cost Reduction Actions (Zero Additional Cost)</div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Action</th>
+                                <th>Cost Impact</th>
+                                <th>Implementation</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Enable Auto-Termination</td>
+                                <td>-30%</td>
+                                <td>Configure 30-minute timeout on all clusters</td>
+                            </tr>
+                            <tr>
+                                <td>Auto-Stop SQL Warehouses</td>
+                                <td>-20%</td>
+                                <td>Configure 15-minute auto-stop timeout</td>
+                            </tr>
+                            <tr>
+                                <td>Optimize Resource-Intensive Queries</td>
+                                <td>-15%</td>
+                                <td>Apply optimizations from Section 5.2</td>
+                            </tr>
+                            <tr>
+                                <td>Remove Unused Clusters</td>
+                                <td>-10%</td>
+                                <td>Delete inactive and test clusters</td>
+                            </tr>
+                            <tr>
+                                <td>Schedule Job Optimization</td>
+                                <td>-10%</td>
+                                <td>Prevent overlapping job executions</td>
+                            </tr>
+                            <tr style="background-color: #d1fae5; font-weight: 600;">
+                                <td colspan="2">Estimated Total Monthly Savings</td>
+                                <td class="cost-positive">$400-$600</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="subsection">
+                    <div class="subsection-title">6.2 Cluster Configuration Best Practices</div>
+                    
+                    <p style="font-weight: 600; margin-bottom: 10px;">Processing Clusters - Recommended Configuration:</p>
+                    <div class="code-block">{
+  "autoscale": {
+    "min_workers": 2,
+    "max_workers": 6
+  },
+  "autotermination_minutes": 30,
+  "spark_conf": {
+    "spark.databricks.adaptive.autoOptimizeShuffle.enabled": "true"
+  }
+}</div>
+                    
+                    <p style="font-weight: 600; margin: 20px 0 10px 0;">SQL Warehouses - Recommended Configuration:</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Setting</th>
+                                <th>Recommended Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Size</td>
+                                <td>2X-Small or X-Small (for user base under 20)</td>
+                            </tr>
+                            <tr>
+                                <td>Cluster Configuration</td>
+                                <td>Minimum 1, Maximum 2</td>
+                            </tr>
+                            <tr>
+                                <td>Auto-stop Timeout</td>
+                                <td>15 minutes</td>
+                            </tr>
+                            <tr>
+                                <td>Serverless Compute</td>
+                                <td>Disabled (prevents cost spikes)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="subsection">
+                    <div class="subsection-title">6.3 Cost Alert Configuration</div>
+                    <div class="info-box">
+                        <div class="info-box-title">Azure Budget Alert Setup</div>
+                        <ol style="margin-left: 25px; line-height: 1.8;">
+                            <li>Navigate to Azure Portal → Cost Management → Budgets</li>
+                            <li>Create budget for Databricks resource group</li>
+                            <li>Configure alert thresholds:
+                                <ul style="margin-left: 25px; margin-top: 5px;">
+                                    <li>Warning Threshold: $1,800/month (120% of baseline)</li>
+                                    <li>Critical Threshold: $2,500/month (170% of baseline)</li>
+                                </ul>
+                            </li>
+                            <li>Configure alert recipients: Team members and finance department</li>
+                            <li>Review frequency: Weekly</li>
+                        </ol>
+                    </div>
+                </div>
+                
+                <div class="subsection">
+                    <div class="subsection-title">6.4 Monthly Cost Review Checklist</div>
+                    <div class="info-box">
+                        <div class="info-box-title">Execute the following review on the first Monday of each month:</div>
+                        <table style="margin-top: 15px;">
+                            <thead>
+                                <tr>
+                                    <th>Review Item</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>High-Cost Clusters</td>
+                                    <td>Review top 10 highest-cost clusters</td>
+                                </tr>
+                                <tr>
+                                    <td>Runtime Analysis</td>
+                                    <td>Identify clusters exceeding 400 hours monthly runtime</td>
+                                </tr>
+                                <tr>
+                                    <td>Query Performance</td>
+                                    <td>Analyze queries with execution time exceeding 1 minute</td>
+                                </tr>
+                                <tr>
+                                    <td>Cluster Cleanup</td>
+                                    <td>Remove unused or obsolete clusters</td>
+                                </tr>
+                                <tr>
+                                    <td>Auto-Termination Audit</td>
+                                    <td>Verify auto-termination is enabled across all clusters</td>
+                                </tr>
+                                <tr>
+                                    <td>SQL Warehouse Utilization</td>
+                                    <td>Review SQL Warehouse utilization metrics</td>
+                                </tr>
+                                <tr>
+                                    <td>DBU Consumption</td>
+                                    <td>Analyze DBU consumption trends and patterns</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SECTION 7: IMPLEMENTATION PLAN -->
+        <div class="section page-break">
+            <div class="section-header">SECTION 7: RECOMMENDED IMPLEMENTATION PLAN</div>
+            <div class="section-content">
+                <div class="recommendation-list">
+                    <div class="subsection-title">Phase 1: Immediate Actions (Current Week) - Zero Cost</div>
+                    <ol style="margin-left: 25px; line-height: 2;">
+                        <li>Enable auto-termination on all clusters (30-minute timeout)</li>
+                        <li>Configure SQL Warehouse auto-stop to 15 minutes</li>
+                        <li>Enable query result caching</li>
+                        <li>Execute OPTIMIZE command on five largest tables</li>
+                        <li>Configure Azure budget alerts</li>
+                    </ol>
+                    <p style="margin-top: 15px; font-weight: 600;">Expected Monthly Savings: $300-$400</p>
+                </div>
+                
+                <div class="recommendation-list">
+                    <div class="subsection-title">Phase 2: Query Optimization (2-Week Implementation) - Zero Cost</div>
+                    <ol style="margin-left: 25px; line-height: 2;">
+                        <li>Identify ten slowest-performing queries</li>
+                        <li>Add partition filters to slow queries</li>
+                        <li>Create materialized views for resource-intensive dashboards</li>
+                        <li>Implement ZORDER on frequently filtered columns</li>
+                        <li>Conduct team training on query best practices</li>
+                    </ol>
+                    <p style="margin-top: 15px; font-weight: 600;">Expected Result: 2-5x faster query execution, no cost increase</p>
+                </div>
+                
+                <div class="warning-box">
+                    <div class="warning-box-title">Phase 3: Tier Upgrade Evaluation (If Required After Phases 1-2)</div>
+                    <p><strong>Note:</strong> Only proceed with tier upgrade if performance issues persist after implementing Phases 1 and 2.</p>
+                    
+                    <p style="margin-top: 15px; font-weight: 600;">Conservative Approach:</p>
+                    <ul style="margin-left: 25px; margin-top: 5px;">
+                        <li>Upgrade Primary SQL Warehouse: 2X-Small to X-Small</li>
+                        <li>Monthly cost increase: $250</li>
+                        <li>Performance improvement: 2x faster</li>
+                    </ul>
+                    
+                    <p style="margin-top: 15px; font-weight: 600;">Aggressive Approach:</p>
+                    <ul style="margin-left: 25px; margin-top: 5px;">
+                        <li>Upgrade Primary SQL Warehouse: 2X-Small to Small</li>
+                        <li>Monthly cost increase: $550</li>
+                        <li>Performance improvement: 4x faster</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SECTION 8: COST SCENARIO SUMMARY -->
+        <div class="section">
+            <div class="section-header">SECTION 8: COST SCENARIO SUMMARY</div>
+            <div class="section-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Scenario</th>
+                            <th>Monthly Cost</th>
+                            <th>vs Current</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Current Baseline</strong></td>
+                            <td class="cost-highlight">$1,480</td>
+                            <td>-</td>
+                            <td>Current expenditure</td>
+                        </tr>
+                        <tr style="background-color: #d1fae5;">
+                            <td><strong>Minimum Utilization (Optimized)</strong></td>
+                            <td class="cost-highlight">$1,080</td>
+                            <td class="cost-positive">-$400</td>
+                            <td>Best practices implemented</td>
+                        </tr>
+                        <tr style="background-color: #fef3c7;">
+                            <td><strong>Current + SQL Upgrade (X-Small)</strong></td>
+                            <td class="cost-highlight">$1,730</td>
+                            <td class="cost-negative">+$250</td>
+                            <td>2x SQL performance</td>
+                        </tr>
+                        <tr style="background-color: #fef3c7;">
+                            <td><strong>Current + SQL Upgrade (Small)</strong></td>
+                            <td class="cost-highlight">$2,030</td>
+                            <td class="cost-negative">+$550</td>
+                            <td>4x SQL performance</td>
+                        </tr>
+                        <tr style="background-color: #fee2e2;">
+                            <td><strong>Maximum Utilization (Runaway)</strong></td>
+                            <td class="cost-highlight">$9,450</td>
+                            <td class="cost-negative">+$7,970</td>
+                            <td>Worst-case scenario</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- RECOMMENDATIONS -->
+        <div class="section page-break">
+            <div class="section-header">RECOMMENDATIONS</div>
+            <div class="section-content">
+                <div class="subsection">
+                    <div class="subsection-title">Strategic Approach</div>
+                    <p style="margin-bottom: 20px;">Based on the analysis conducted, the following phased approach is recommended:</p>
+                    
+                    <div class="recommendation-list">
+                        <p style="font-weight: 600; margin-bottom: 10px;">1. Implement Zero-Cost Optimizations First</p>
+                        <ul style="margin-left: 25px; line-height: 1.8;">
+                            <li>Execute Phase 1 and Phase 2 actions outlined in Section 7</li>
+                            <li>Monitor performance improvements over 2-4 week period</li>
+                            <li>Measure impact on user-reported performance issues</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="info-box">
+                        <p style="font-weight: 600; margin-bottom: 10px;">2. Performance Monitoring Period</p>
+                        <ul style="margin-left: 25px; line-height: 1.8;">
+                            <li>Track query execution metrics</li>
+                            <li>Collect user feedback on performance</li>
+                            <li>Assess reduction in performance complaints</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="warning-box">
+                        <div class="warning-box-title">3. Tier Upgrade Decision</div>
+                        <ul style="margin-left: 25px; line-height: 1.8;">
+                            <li>If performance issues persist after optimizations: Upgrade to X-Small (+$250/month)</li>
+                            <li>If supporting increased user base: Consider Small tier (+$550/month)</li>
+                            <li>If performance meets requirements: Maintain current configuration</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="success-box">
+                        <div class="success-box-title">4. Ongoing Cost Control</div>
+                        <ul style="margin-left: 25px; line-height: 1.8;">
+                            <li>Enforce auto-termination settings across all environments</li>
+                            <li>Maintain active budget alert monitoring</li>
+                            <li>Conduct monthly cost review meetings</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- QUICK REFERENCE -->
+        <div class="section">
+            <div class="section-header">QUICK REFERENCE - KEY COST METRICS</div>
+            <div class="section-content">
+                <div class="subsection">
+                    <div class="subsection-title">Baseline Costs</div>
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td><strong>PreProd Environment</strong></td>
+                                <td class="cost-highlight">$350/month</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Production Environment</strong></td>
+                                <td class="cost-highlight">$1,130/month</td>
+                            </tr>
+                            <tr style="background-color: #dbeafe; font-weight: 600;">
+                                <td><strong>Total Monthly Cost</strong></td>
+                                <td class="cost-highlight">$1,480/month</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="subsection">
+                    <div class="subsection-title">Optimized Scenario (Best Case)</div>
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td><strong>PreProd Environment</strong></td>
+                                <td class="cost-highlight">$350/month</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Production Environment</strong></td>
+                                <td class="cost-highlight">$730/month</td>
+                            </tr>
+                            <tr style="background-color: #d1fae5; font-weight: 600;">
+                                <td><strong>Total Monthly Cost</strong></td>
+                                <td class="cost-highlight">$1,080/month</td>
+                            </tr>
+                            <tr style="background-color: #d1fae5; font-weight: 600;">
+                                <td><strong>Monthly Savings</strong></td>
+                                <td class="cost-positive">-$400</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="subsection">
+                    <div class="subsection-title">Runaway Scenario (Worst Case)</div>
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td><strong>PreProd Environment</strong></td>
+                                <td class="cost-highlight">$2,400/month</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Production Environment</strong></td>
+                                <td class="cost-highlight">$7,050/month</td>
+                            </tr>
+                            <tr style="background-color: #fee2e2; font-weight: 600;">
+                                <td><strong>Total Monthly Cost</strong></td>
+                                <td class="cost-highlight">$9,450/month</td>
+                            </tr>
+                            <tr style="background-color: #fee2e2; font-weight: 600;">
+                                <td><strong>Cost Increase</strong></td>
+                                <td class="cost-negative">+$7,970</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="subsection">
+                    <div class="subsection-title">SQL Warehouse Upgrade Costs</div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Upgrade Path</th>
+                                <th>Monthly Cost Increase</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2X-Small to X-Small</td>
+                                <td class="cost-negative">+$250/month</td>
+                            </tr>
+                            <tr>
+                                <td>2X-Small to Small</td>
+                                <td class="cost-negative">+$550/month</td>
+                            </tr>
+                            <tr>
+                                <td>2X-Small to Medium</td>
+                                <td class="cost-negative">+$1,100/month</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- FOOTER -->
+        <div class="footer">
+            <div class="footer-info"><strong>Document Prepared By:</strong> Syed Rizvi, Senior Systems Administrator</div>
+            <div class="footer-info"><strong>Prepared For:</strong> Preyash Patel, PYX Health</div>
+            <div class="footer-info"><strong>Date:</strong> February 20, 2026</div>
+            <div class="footer-info"><strong>Version:</strong> 1.0</div>
+            <div class="footer-info" style="margin-top: 15px; font-size: 12px; opacity: 0.8;">
+                This document contains confidential and proprietary information. Distribution limited to authorized personnel.
+            </div>
+        </div>
+    </div>
+</body>
+</html>
