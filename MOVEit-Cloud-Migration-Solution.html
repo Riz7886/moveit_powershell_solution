@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOVEit Cloud Migration Solution</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 30px;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white;
+            padding: 40px;
+            border-bottom: 5px solid #1e40af;
+        }
+        
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .header h2 {
+            font-size: 20px;
+            font-weight: 400;
+            opacity: 0.95;
+        }
+        
+        .section {
+            border: 2px solid #cbd5e1;
+            margin: 0;
+            border-top: none;
+        }
+        
+        .section-header {
+            background-color: #1e40af;
+            color: white;
+            padding: 15px 30px;
+            font-size: 20px;
+            font-weight: 600;
+            border-bottom: 2px solid #1e3a8a;
+        }
+        
+        .section-content {
+            padding: 30px;
+        }
+        
+        .subsection-title {
+            background-color: #e0e7ff;
+            color: #1e40af;
+            padding: 12px 20px;
+            font-size: 18px;
+            font-weight: 600;
+            border-left: 4px solid #1e40af;
+            margin: 20px 0 15px 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: white;
+        }
+        
+        table th {
+            background-color: #1e40af;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border: 1px solid #1e3a8a;
+        }
+        
+        table td {
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+        }
+        
+        table tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+        
+        table tr:hover {
+            background-color: #e0e7ff;
+        }
+        
+        .comparison-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 30px 0;
+        }
+        
+        .on-prem-box {
+            background-color: #fee2e2;
+            border: 3px solid #dc2626;
+            border-radius: 8px;
+            padding: 25px;
+        }
+        
+        .cloud-box {
+            background-color: #d1fae5;
+            border: 3px solid #059669;
+            border-radius: 8px;
+            padding: 25px;
+        }
+        
+        .box-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        
+        .on-prem-title {
+            color: #991b1b;
+        }
+        
+        .cloud-title {
+            color: #065f46;
+        }
+        
+        .cost-item {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .cost-item:last-child {
+            border-bottom: none;
+            font-weight: 700;
+            font-size: 18px;
+            margin-top: 10px;
+            padding-top: 15px;
+            border-top: 2px solid rgba(0,0,0,0.2);
+        }
+        
+        .savings-box {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 8px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        
+        .savings-amount {
+            font-size: 48px;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+        
+        .migration-steps {
+            background-color: #f0fdf4;
+            border: 2px solid #059669;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+        
+        .step {
+            display: flex;
+            align-items: flex-start;
+            margin: 15px 0;
+        }
+        
+        .step-number {
+            background-color: #059669;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .step-title {
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        
+        .warning-box {
+            background-color: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-left: 5px solid #f59e0b;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .info-box {
+            background-color: #dbeafe;
+            border: 2px solid #2563eb;
+            border-left: 5px solid #2563eb;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .footer {
+            background-color: #1e293b;
+            color: white;
+            padding: 25px;
+            text-align: center;
+            border-top: 5px solid #0f172a;
+        }
+        
+        ul {
+            margin-left: 25px;
+            margin-top: 10px;
+        }
+        
+        li {
+            margin: 8px 0;
+        }
+        
+        @media print {
+            body {
+                background-color: white;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <h1>MOVEit Cloud Migration Solution</h1>
+            <h2>On-Premises to Azure Cloud - Complete Cost Analysis & Migration Plan</h2>
+        </div>
+        
+        <!-- EXECUTIVE SUMMARY -->
+        <div class="section">
+            <div class="section-header">EXECUTIVE SUMMARY</div>
+            <div class="section-content">
+                <p style="font-size: 16px; margin-bottom: 20px;">
+                    This document outlines the comprehensive solution for migrating MOVEit Transfer Server from on-premises 
+                    infrastructure to Azure Cloud. The analysis includes current infrastructure costs, cloud pricing, 
+                    projected savings, and a detailed migration roadmap.
+                </p>
+                
+                <div class="savings-box">
+                    <div style="font-size: 20px;">PROJECTED ANNUAL SAVINGS</div>
+                    <div class="savings-amount">$6,000 - $18,000</div>
+                    <div style="font-size: 18px;">Monthly Savings: $500 - $1,500</div>
+                    <div style="font-size: 16px; margin-top: 15px; opacity: 0.9;">5-Year Total Savings: $30,000 - $90,000</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- CURRENT STATE ANALYSIS -->
+        <div class="section">
+            <div class="section-header">CURRENT STATE ANALYSIS</div>
+            <div class="section-content">
+                <div class="subsection-title">On-Premises Infrastructure (rg-moveit)</div>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Resource Type</th>
+                            <th>Count</th>
+                            <th>Monthly Cost</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Virtual Machines</td>
+                            <td>3</td>
+                            <td>$800 - $1,200</td>
+                            <td>MOVEit server + SQL + File Gateway</td>
+                        </tr>
+                        <tr>
+                            <td>Storage Accounts</td>
+                            <td>2</td>
+                            <td>$150 - $300</td>
+                            <td>Premium + Standard storage</td>
+                        </tr>
+                        <tr>
+                            <td>SQL Database</td>
+                            <td>1</td>
+                            <td>$400 - $600</td>
+                            <td>DTU-based pricing</td>
+                        </tr>
+                        <tr>
+                            <td>Load Balancer</td>
+                            <td>1</td>
+                            <td>$50 - $100</td>
+                            <td>Standard tier</td>
+                        </tr>
+                        <tr>
+                            <td>Virtual Network</td>
+                            <td>1</td>
+                            <td>$50 - $80</td>
+                            <td>VNet + Subnets</td>
+                        </tr>
+                        <tr>
+                            <td>Public IP Addresses</td>
+                            <td>3</td>
+                            <td>$30 - $45</td>
+                            <td>Static IPs</td>
+                        </tr>
+                        <tr>
+                            <td>Network Security Groups</td>
+                            <td>4</td>
+                            <td>$20 - $30</td>
+                            <td>Firewall rules</td>
+                        </tr>
+                        <tr>
+                            <td>Azure Front Door</td>
+                            <td>1</td>
+                            <td>$300 - $500</td>
+                            <td>CDN + WAF</td>
+                        </tr>
+                        <tr>
+                            <td>Backup & Recovery</td>
+                            <td>-</td>
+                            <td>$150 - $250</td>
+                            <td>VM + SQL backups</td>
+                        </tr>
+                        <tr>
+                            <td>Monitoring & Logs</td>
+                            <td>-</td>
+                            <td>$100 - $150</td>
+                            <td>Log Analytics + Alerts</td>
+                        </tr>
+                        <tr>
+                            <td>Azure Defender</td>
+                            <td>-</td>
+                            <td>$200 - $300</td>
+                            <td>Security monitoring</td>
+                        </tr>
+                        <tr style="background-color: #fee2e2; font-weight: 700;">
+                            <td colspan="2"><strong>TOTAL MONTHLY COST</strong></td>
+                            <td colspan="2"><strong>$2,250 - $3,555</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="warning-box">
+                    <strong>Hidden Costs Not Included:</strong>
+                    <ul>
+                        <li>Windows Server licenses (if not using Azure Hybrid Benefit): ~$200/month</li>
+                        <li>SQL Server licenses: ~$500/month</li>
+                        <li>MOVEit software licensing: ~$1,000/month</li>
+                        <li>Management overhead: IT staff time for patching, updates, troubleshooting</li>
+                        <li>Disaster recovery testing and maintenance</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- PROPOSED CLOUD SOLUTION -->
+        <div class="section">
+            <div class="section-header">PROPOSED CLOUD SOLUTION</div>
+            <div class="section-content">
+                <div class="subsection-title">MOVEit Cloud (SaaS Solution)</div>
+                
+                <div class="comparison-box">
+                    <div class="on-prem-box">
+                        <div class="box-title on-prem-title">Current On-Premises</div>
+                        <div class="cost-item">
+                            <span>Infrastructure</span>
+                            <span>$2,250 - $3,555</span>
+                        </div>
+                        <div class="cost-item">
+                            <span>Licensing</span>
+                            <span>~$1,700</span>
+                        </div>
+                        <div class="cost-item">
+                            <span>Management Overhead</span>
+                            <span>~$500</span>
+                        </div>
+                        <div class="cost-item">
+                            <span><strong>TOTAL MONTHLY</strong></span>
+                            <span><strong>$4,450 - $5,755</strong></span>
+                        </div>
+                    </div>
+                    
+                    <div class="cloud-box">
+                        <div class="box-title cloud-title">MOVEit Cloud</div>
+                        <div class="cost-item">
+                            <span>Base Service</span>
+                            <span>$2,500</span>
+                        </div>
+                        <div class="cost-item">
+                            <span>All licensing included</span>
+                            <span>$0</span>
+                        </div>
+                        <div class="cost-item">
+                            <span>Zero management</span>
+                            <span>$0</span>
+                        </div>
+                        <div class="cost-item">
+                            <span><strong>TOTAL MONTHLY</strong></span>
+                            <span><strong>$2,500</strong></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="subsection-title">MOVEit Cloud Features Included</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>Included</th>
+                            <th>Benefit</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>99.9% Uptime SLA</td>
+                            <td>✓</td>
+                            <td>High availability guaranteed</td>
+                        </tr>
+                        <tr>
+                            <td>Automatic Updates</td>
+                            <td>✓</td>
+                            <td>No maintenance windows needed</td>
+                        </tr>
+                        <tr>
+                            <td>Built-in DDoS Protection</td>
+                            <td>✓</td>
+                            <td>Enterprise security</td>
+                        </tr>
+                        <tr>
+                            <td>Global CDN</td>
+                            <td>✓</td>
+                            <td>Faster file transfers worldwide</td>
+                        </tr>
+                        <tr>
+                            <td>Disaster Recovery</td>
+                            <td>✓</td>
+                            <td>Automated backups & geo-redundancy</td>
+                        </tr>
+                        <tr>
+                            <td>24/7 Support</td>
+                            <td>✓</td>
+                            <td>Expert assistance included</td>
+                        </tr>
+                        <tr>
+                            <td>Compliance Certifications</td>
+                            <td>✓</td>
+                            <td>SOC 2, HIPAA, PCI-DSS ready</td>
+                        </tr>
+                        <tr>
+                            <td>Unlimited Storage</td>
+                            <td>✓</td>
+                            <td>No storage cost surprises</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- MIGRATION ROADMAP -->
+        <div class="section">
+            <div class="section-header">MIGRATION ROADMAP</div>
+            <div class="section-content">
+                <div class="migration-steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <div class="step-title">Pre-Migration Assessment (Week 1)</div>
+                            <ul>
+                                <li>Inventory current MOVEit users and workflows</li>
+                                <li>Document file transfer integrations and automations</li>
+                                <li>Review security requirements and compliance needs</li>
+                                <li>Identify custom scripts and API integrations</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <div class="step-title">MOVEit Cloud Provisioning (Week 2)</div>
+                            <ul>
+                                <li>Sign up for MOVEit Cloud service</li>
+                                <li>Configure DNS and SSL certificates</li>
+                                <li>Set up user authentication (AD/LDAP integration)</li>
+                                <li>Configure SSO if required</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <div class="step-title">Data Migration (Week 3)</div>
+                            <ul>
+                                <li>Export user accounts and permissions from on-prem</li>
+                                <li>Transfer file transfer history and audit logs</li>
+                                <li>Migrate automation scripts and workflows</li>
+                                <li>Test file uploads/downloads in cloud environment</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <div class="step-title">Testing & Validation (Week 4)</div>
+                            <ul>
+                                <li>User acceptance testing with key stakeholders</li>
+                                <li>Validate all integrations and API connections</li>
+                                <li>Performance testing for file transfer speeds</li>
+                                <li>Security and compliance validation</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">5</div>
+                        <div class="step-content">
+                            <div class="step-title">Cutover & Go-Live (Week 5)</div>
+                            <ul>
+                                <li>Schedule maintenance window for final cutover</li>
+                                <li>Update DNS records to point to MOVEit Cloud</li>
+                                <li>Monitor system for 48 hours post-migration</li>
+                                <li>Conduct user training sessions</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">6</div>
+                        <div class="step-content">
+                            <div class="step-title">Decommissioning (Week 6-8)</div>
+                            <ul>
+                                <li>Keep on-prem system running for 2 weeks as backup</li>
+                                <li>Export final audit logs and archive</li>
+                                <li>Decommission Azure infrastructure</li>
+                                <li>Cancel on-premises licensing</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- RISK MITIGATION -->
+        <div class="section">
+            <div class="section-header">RISK MITIGATION & ROLLBACK PLAN</div>
+            <div class="section-content">
+                <div class="subsection-title">Identified Risks</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Risk</th>
+                            <th>Likelihood</th>
+                            <th>Impact</th>
+                            <th>Mitigation Strategy</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Data loss during migration</td>
+                            <td>Low</td>
+                            <td>High</td>
+                            <td>Full backup before migration, parallel run for 2 weeks</td>
+                        </tr>
+                        <tr>
+                            <td>Integration failures</td>
+                            <td>Medium</td>
+                            <td>Medium</td>
+                            <td>Test all integrations in pilot, keep on-prem as fallback</td>
+                        </tr>
+                        <tr>
+                            <td>User adoption issues</td>
+                            <td>Medium</td>
+                            <td>Low</td>
+                            <td>Training sessions, documentation, support hotline</td>
+                        </tr>
+                        <tr>
+                            <td>Performance degradation</td>
+                            <td>Low</td>
+                            <td>Medium</td>
+                            <td>Performance baseline testing, SLA monitoring</td>
+                        </tr>
+                        <tr>
+                            <td>Compliance gaps</td>
+                            <td>Low</td>
+                            <td>High</td>
+                            <td>Pre-migration compliance audit, vendor certification review</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="info-box">
+                    <strong>Rollback Plan:</strong>
+                    <p style="margin-top: 10px;">If critical issues arise within the first 2 weeks of go-live:</p>
+                    <ul>
+                        <li>DNS can be reverted to on-premises in under 5 minutes</li>
+                        <li>On-premises infrastructure remains active during transition period</li>
+                        <li>All data and configurations are backed up before cutover</li>
+                        <li>Full rollback can be executed within 1 hour</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- COST BENEFIT ANALYSIS -->
+        <div class="section">
+            <div class="section-header">5-YEAR COST BENEFIT ANALYSIS</div>
+            <div class="section-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Year</th>
+                            <th>On-Premises Total</th>
+                            <th>MOVEit Cloud Total</th>
+                            <th>Annual Savings</th>
+                            <th>Cumulative Savings</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Year 1</td>
+                            <td>$53,400 - $69,060</td>
+                            <td>$30,000</td>
+                            <td>$23,400 - $39,060</td>
+                            <td>$23,400 - $39,060</td>
+                        </tr>
+                        <tr>
+                            <td>Year 2</td>
+                            <td>$53,400 - $69,060</td>
+                            <td>$30,000</td>
+                            <td>$23,400 - $39,060</td>
+                            <td>$46,800 - $78,120</td>
+                        </tr>
+                        <tr>
+                            <td>Year 3</td>
+                            <td>$53,400 - $69,060</td>
+                            <td>$30,000</td>
+                            <td>$23,400 - $39,060</td>
+                            <td>$70,200 - $117,180</td>
+                        </tr>
+                        <tr>
+                            <td>Year 4</td>
+                            <td>$53,400 - $69,060</td>
+                            <td>$30,000</td>
+                            <td>$23,400 - $39,060</td>
+                            <td>$93,600 - $156,240</td>
+                        </tr>
+                        <tr>
+                            <td>Year 5</td>
+                            <td>$53,400 - $69,060</td>
+                            <td>$30,000</td>
+                            <td>$23,400 - $39,060</td>
+                            <td>$117,000 - $195,300</td>
+                        </tr>
+                        <tr style="background-color: #d1fae5; font-weight: 700; font-size: 16px;">
+                            <td>5-YEAR TOTAL</td>
+                            <td>$267,000 - $345,300</td>
+                            <td>$150,000</td>
+                            <td colspan="2">SAVINGS: $117,000 - $195,300</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="warning-box">
+                    <strong>Note on Pricing:</strong> MOVEit Cloud pricing at $2,500/month is estimated based on standard enterprise 
+                    tier. Actual pricing depends on:
+                    <ul>
+                        <li>Number of named users</li>
+                        <li>Data transfer volume (TB/month)</li>
+                        <li>Storage requirements</li>
+                        <li>Support tier required (Standard vs Premium)</li>
+                        <li>Contract term (annual vs multi-year discount)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- RECOMMENDATION -->
+        <div class="section">
+            <div class="section-header">RECOMMENDATION</div>
+            <div class="section-content">
+                <div style="font-size: 18px; line-height: 1.8;">
+                    <p style="margin-bottom: 20px;">
+                        <strong>Based on the comprehensive analysis, we recommend proceeding with MOVEit Cloud migration for the following reasons:</strong>
+                    </p>
+                    
+                    <div class="cloud-box" style="margin: 20px 0;">
+                        <div class="box-title cloud-title">Financial Benefits</div>
+                        <ul>
+                            <li><strong>$117,000 - $195,300</strong> in total savings over 5 years</li>
+                            <li><strong>44-56%</strong> reduction in monthly costs</li>
+                            <li><strong>$0</strong> infrastructure management overhead</li>
+                            <li>Predictable, fixed monthly costs with no surprises</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="cloud-box" style="margin: 20px 0;">
+                        <div class="box-title cloud-title">Operational Benefits</div>
+                        <ul>
+                            <li>Eliminate IT staff time spent on patching and maintenance</li>
+                            <li>99.9% uptime SLA vs. current manual management</li>
+                            <li>Automatic security updates and compliance</li>
+                            <li>24/7 expert support included</li>
+                            <li>Faster global file transfers with built-in CDN</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="cloud-box" style="margin: 20px 0;">
+                        <div class="box-title cloud-title">Strategic Benefits</div>
+                        <ul>
+                            <li>Focus IT resources on strategic initiatives vs. infrastructure maintenance</li>
+                            <li>Scalability built-in for future growth</li>
+                            <li>Reduced vendor management (single vendor vs. multiple Azure services)</li>
+                            <li>Simplified disaster recovery and business continuity</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="info-box" style="margin-top: 30px;">
+                        <strong>Next Steps:</strong>
+                        <ol style="margin-left: 25px; margin-top: 10px;">
+                            <li>Request formal quote from MOVEit Cloud for accurate pricing</li>
+                            <li>Schedule demo with MOVEit Cloud team</li>
+                            <li>Present business case to leadership for approval</li>
+                            <li>Initiate procurement process</li>
+                            <li>Begin Week 1 of migration roadmap</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- FOOTER -->
+        <div class="footer">
+            <div style="font-size: 16px; margin-bottom: 10px;"><strong>Document Prepared By:</strong> Syed Rizvi, Senior Systems Administrator</div>
+            <div style="font-size: 14px; margin-bottom: 5px;"><strong>Prepared For:</strong> Tony Schlak, IT Director</div>
+            <div style="font-size: 14px; margin-bottom: 5px;"><strong>Date:</strong> February 2026</div>
+            <div style="font-size: 12px; margin-top: 15px; opacity: 0.8;">
+                This document contains confidential and proprietary information. Distribution limited to authorized personnel.
+            </div>
+        </div>
+    </div>
+</body>
+</html>
