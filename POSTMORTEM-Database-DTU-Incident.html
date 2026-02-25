@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Postmortem: SQL Database Performance Incident</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 40px; background: #f5f5f5; line-height: 1.6; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 40px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        h1 { color: #d32f2f; border-bottom: 4px solid #d32f2f; padding-bottom: 10px; }
+        h2 { color: #1976d2; margin-top: 30px; border-left: 4px solid #1976d2; padding-left: 15px; }
+        h3 { color: #455a64; }
+        .header { background: #d32f2f; color: white; padding: 20px; margin: -40px -40px 30px -40px; }
+        .header h1 { color: white; border: none; margin: 0; }
+        .meta { color: #eceff1; font-size: 14px; margin-top: 10px; }
+        .summary-box { background: #fff3e0; border-left: 4px solid #ff9800; padding: 20px; margin: 20px 0; }
+        .impact-high { background: #ffebee; border-left: 4px solid #d32f2f; padding: 15px; margin: 10px 0; }
+        .impact-medium { background: #fff3e0; border-left: 4px solid #ff9800; padding: 15px; margin: 10px 0; }
+        .impact-low { background: #e3f2fd; border-left: 4px solid #2196f3; padding: 15px; margin: 10px 0; }
+        .timeline { background: #fafafa; padding: 20px; margin: 20px 0; border-left: 3px solid #1976d2; }
+        .timeline-item { margin: 15px 0; padding-left: 20px; border-left: 2px solid #ccc; }
+        .timeline-time { font-weight: bold; color: #1976d2; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th { background: #1976d2; color: white; padding: 12px; text-align: left; }
+        td { padding: 10px; border-bottom: 1px solid #ddd; }
+        tr:hover { background: #f5f5f5; }
+        .action-item { background: #e8f5e9; padding: 10px; margin: 5px 0; border-left: 3px solid #4caf50; }
+        .checkbox { margin-right: 10px; }
+        .good { color: #4caf50; }
+        .bad { color: #d32f2f; }
+        .warning { color: #ff9800; }
+        .section { margin: 30px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚨 POSTMORTEM: SQL Database Performance Incident</h1>
+            <div class="meta">
+                <strong>Incident ID:</strong> DB-2026-02-25 | 
+                <strong>Severity:</strong> High | 
+                <strong>Duration:</strong> February 20-25, 2026 (5 days) |
+                <strong>Date:</strong> February 25, 2026
+            </div>
+        </div>
+
+        <div class="summary-box">
+            <h2>📋 Executive Summary</h2>
+            <p>Multiple SQL databases reached critical DTU capacity (85%+), causing performance degradation across several business-critical systems including PyxIQ member search, Tableau reporting, and call center operations.</p>
+            
+            <table>
+                <tr>
+                    <th>Impact Area</th>
+                    <th>Description</th>
+                    <th>Duration</th>
+                </tr>
+                <tr>
+                    <td><strong>PyxIQ</strong></td>
+                    <td>Search timeouts preventing member enrollment</td>
+                    <td>~4 hours</td>
+                </tr>
+                <tr>
+                    <td><strong>Tableau</strong></td>
+                    <td>Reports not updated</td>
+                    <td>5 days</td>
+                </tr>
+                <tr>
+                    <td><strong>Call Center</strong></td>
+                    <td>Service outage</td>
+                    <td>Morning of Feb 25</td>
+                </tr>
+            </table>
+            
+            <p><strong>Resolution:</strong> 32 databases upgraded to appropriate DTU tiers</p>
+            <p><strong>Cost Impact:</strong> +$525/month (performance investment)</p>
+        </div>
+
+        <div class="section">
+            <h2>⏰ Timeline of Events</h2>
+            
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-time">February 20, 2026 - 09:00 AM</div>
+                    <p>Tableau reporting begins failing to refresh (not immediately noticed). Databases gradually reaching capacity.</p>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-time">February 21-24, 2026</div>
+                    <p>Tableau data becomes stale (5 consecutive days no updates). PyxIQ experiencing intermittent slowness. Issue not yet escalated.</p>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-time">February 25, 2026 - 12:42 PM</div>
+                    <p><strong class="bad">CRITICAL ESCALATION</strong> - Karen reports PyxIQ search completely failing across all organizations. Root cause: Database timeouts.</p>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-time">12:42 PM - 1:30 PM</div>
+                    <p>Emergency response: Database optimization script identifies 38 prod + 17 non-prod databases critically maxed. Automated upgrades executed.</p>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-time">1:30 PM - 2:00 PM</div>
+                    <p><strong class="warning">ISSUE PERSISTS</strong> - Some databases not upgraded sufficiently. Tony identifies need for higher performance tiers.</p>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-time">2:00 PM - 2:30 PM</div>
+                    <p>Course correction: Tony manually reverts changes. New strategy: Performance over cost + Serverless for appropriate workloads.</p>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-time">2:30 PM - 3:30 PM</div>
+                    <p><strong class="good">RESOLUTION PLANNING</strong> - Serverless testing approved. 7-day pilot test plan established.</p>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-time">3:36 PM</div>
+                    <p>Additional impacts identified: Call center outage this morning + Tableau stale for 5 days (both linked to database capacity).</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔍 Root Cause Analysis</h2>
+            
+            <h3>Primary Cause: Database DTU Exhaustion</h3>
+            <p>Multiple SQL databases reached or exceeded 85% DTU utilization, causing:</p>
+            <ul>
+                <li>Query timeouts (>30 second response times)</li>
+                <li>Connection pool exhaustion</li>
+                <li>Application-level failures</li>
+                <li>Data pipeline stalls</li>
+            </ul>
+            
+            <h3>Contributing Factors:</h3>
+            <ol>
+                <li><strong>Lack of Proactive Monitoring</strong> - No alerting on sustained high DTU usage</li>
+                <li><strong>Organic Growth Without Scaling</strong> - Workloads increased but tiers unchanged</li>
+                <li><strong>Cost Optimization Priority</strong> - Initial focus on savings over performance</li>
+                <li><strong>Insufficient Testing</strong> - Production changes without adequate validation</li>
+            </ol>
+        </div>
+
+        <div class="section">
+            <h2>💥 Impact Assessment</h2>
+            
+            <div class="impact-high">
+                <h3>HIGH SEVERITY</h3>
+                <p><strong>PyxIQ Member Enrollment</strong></p>
+                <ul>
+                    <li>Status: Completely blocked for cross-org searches</li>
+                    <li>Impact: Member acquisition, customer service</li>
+                    <li>Users: Inbound team + all members attempting enrollment</li>
+                    <li>Duration: ~4 hours</li>
+                </ul>
+            </div>
+            
+            <div class="impact-medium">
+                <h3>MEDIUM SEVERITY</h3>
+                <p><strong>Tableau Reporting</strong></p>
+                <ul>
+                    <li>Status: 5-day data staleness</li>
+                    <li>Impact: Business intelligence, executive reporting</li>
+                    <li>Users: Leadership, analytics team</li>
+                    <li>Duration: 5 days</li>
+                </ul>
+                
+                <p><strong>Call Center Operations</strong></p>
+                <ul>
+                    <li>Status: Morning outage</li>
+                    <li>Impact: Customer service disruption</li>
+                    <li>Users: Call center agents + members</li>
+                    <li>Duration: TBD (needs verification)</li>
+                </ul>
+            </div>
+            
+            <div class="impact-low">
+                <h3>LOW SEVERITY</h3>
+                <p><strong>Non-Production Databases</strong></p>
+                <ul>
+                    <li>Status: Performance degradation</li>
+                    <li>Impact: Development velocity, testing</li>
+                    <li>Users: Development team</li>
+                    <li>Duration: 5 days</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📊 By The Numbers</h2>
+            <table>
+                <tr>
+                    <td><strong>Production DBs at critical capacity (>85%)</strong></td>
+                    <td>38</td>
+                </tr>
+                <tr>
+                    <td><strong>Non-prod DBs at high capacity (>75%)</strong></td>
+                    <td>17</td>
+                </tr>
+                <tr>
+                    <td><strong>Total databases upgraded</strong></td>
+                    <td>32</td>
+                </tr>
+                <tr>
+                    <td><strong>Monthly cost increase (performance)</strong></td>
+                    <td>$525</td>
+                </tr>
+                <tr>
+                    <td><strong>Incident response time (detection to fix)</strong></td>
+                    <td>~8 hours</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>✅ Lessons Learned</h2>
+            
+            <h3 class="good">What Went Well</h3>
+            <ul>
+                <li>Rapid detection after escalation - metrics clearly showed the problem</li>
+                <li>Automated remediation script available and ready</li>
+                <li>Strong team collaboration and fast pivot when needed</li>
+            </ul>
+            
+            <h3 class="bad">What Didn't Go Well</h3>
+            <ul>
+                <li>Reactive approach - no early warning system</li>
+                <li>5-day lag before critical escalation</li>
+                <li>Initial fix prioritized cost over performance</li>
+                <li>Full scope of impact discovered late</li>
+                <li>No testing framework for database changes</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Action Items</h2>
+            
+            <h3>Immediate (This Week)</h3>
+            <div class="action-item">
+                <input type="checkbox" class="checkbox"> <strong>Deploy Monitoring Alerts</strong> - DTU >80% sustained usage alerts<br>
+                Owner: Syed Rizvi | Deadline: Feb 27, 2026
+            </div>
+            <div class="action-item">
+                <input type="checkbox" class="checkbox"> <strong>Start Serverless Pilot</strong> - Convert one non-prod DB, monitor 7 days<br>
+                Owner: Syed Rizvi | Deadline: Feb 26, 2026
+            </div>
+            <div class="action-item">
+                <input type="checkbox" class="checkbox"> <strong>Verify All Impacts Resolved</strong> - Confirmation from all affected teams<br>
+                Owner: Tony Schlak | Deadline: Feb 26, 2026
+            </div>
+            
+            <h3>Short-Term (Next 30 Days)</h3>
+            <div class="action-item">
+                <input type="checkbox" class="checkbox"> <strong>Implement Automated Monitoring</strong> - Weekly DTU reports<br>
+                Owner: Syed Rizvi | Deadline: Mar 15, 2026
+            </div>
+            <div class="action-item">
+                <input type="checkbox" class="checkbox"> <strong>Complete Serverless Evaluation</strong> - HTML report with recommendation<br>
+                Owner: Syed Rizvi | Deadline: Mar 5, 2026
+            </div>
+            <div class="action-item">
+                <input type="checkbox" class="checkbox"> <strong>Capacity Planning Process</strong> - Quarterly review framework<br>
+                Owner: Tony Schlak | Deadline: Mar 20, 2026
+            </div>
+            
+            <h3>Long-Term (Next 90 Days)</h3>
+            <div class="action-item">
+                <input type="checkbox" class="checkbox"> <strong>Serverless Migration Plan</strong> - Roadmap for appropriate databases<br>
+                Owner: Tony Schlak / Syed Rizvi | Deadline: Apr 30, 2026
+            </div>
+            <div class="action-item">
+                <input type="checkbox" class="checkbox"> <strong>Predictive Capacity Planning</strong> - Trend analysis & forecasting<br>
+                Owner: Syed Rizvi | Deadline: May 15, 2026
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🛡️ Prevention Measures</h2>
+            
+            <h3>Monitoring & Alerting</h3>
+            <ul>
+                <li><strong>Real-Time Alerts:</strong> DTU >80% for 30 min → Email | DTU >90% for 15 min → PagerDuty/SMS</li>
+                <li><strong>Trend Analysis:</strong> Weekly capacity reports with growth forecasting</li>
+                <li><strong>Dashboard:</strong> Live DTU utilization with 30/60/90-day trends</li>
+            </ul>
+            
+            <h3>Process Improvements</h3>
+            <ul>
+                <li><strong>Quarterly Capacity Reviews:</strong> Proactive tier adjustments</li>
+                <li><strong>Change Management:</strong> Dry-run testing + documented rollback procedures</li>
+                <li><strong>Serverless Strategy:</strong> Identify low-usage DBs for cost savings</li>
+            </ul>
+        </div>
+
+        <div class="section" style="background: #e8f5e9; padding: 20px; border-left: 4px solid #4caf50;">
+            <h2>📝 Sign-Off</h2>
+            <p><strong>Incident Commander:</strong> Tony Schlak</p>
+            <p><strong>Technical Lead:</strong> Syed Rizvi</p>
+            <p><strong>Date Closed:</strong> February 25, 2026</p>
+            
+            <h3>Approval Required:</h3>
+            <ul>
+                <li>☐ Tony Schlak (Infrastructure Manager)</li>
+                <li>☐ Karen (PyxIQ Product Owner)</li>
+                <li>☐ Analytics Team Lead (Tableau)</li>
+                <li>☐ Call Center Manager</li>
+            </ul>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 2px solid #ddd; color: #666; font-size: 12px;">
+            <p><strong>Document Version:</strong> 1.0 | <strong>Last Updated:</strong> February 25, 2026 | <strong>Next Review:</strong> March 5, 2026</p>
+            <p>Prepared by: Syed Rizvi | Infrastructure Engineering Team</p>
+        </div>
+    </div>
+</body>
+</html>
