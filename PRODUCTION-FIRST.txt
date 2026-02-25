@@ -1,0 +1,63 @@
+SQL DTU Optimizer - Production First Priority
+Syed Rizvi
+
+SMART LOGIC - PRODUCTION ALWAYS FIRST
+
+Both scripts now work this way:
+
+Phase 1: ANALYZE ALL DATABASES
+- Scans all 170 databases
+- Gets 7 days of usage data
+- Calculates optimal tier for each
+- Identifies which databases need fixing
+
+Phase 2: FIX PRODUCTION FIRST (ONLY IF NEEDED)
+- Looks at all 38 production databases
+- Fixes ONLY those that need it (high usage >65%)
+- Skips production databases that are already optimal
+- Processes production databases in order of urgency (highest usage first)
+
+Phase 3: FIX NON-PRODUCTION (ONLY IF NEEDED)
+- Looks at remaining databases
+- Fixes ONLY those that need it
+- Skips databases already at optimal tier
+
+WHAT THIS MEANS:
+
+Production databases are ALWAYS checked first
+BUT only fixed if they actually need it
+If a production database is already at sweet spot, it's left alone
+
+Example:
+- 38 production databases total
+- 5 need increase (will be fixed in Phase 2)
+- 33 are optimal (will be skipped)
+- Then non-production databases are processed
+
+SAFETY FEATURES:
+
+Won't change database twice within 48 hours
+Won't downgrade large databases (>250GB)
+Only fixes databases with usage >65%
+Production databases always processed before others
+
+RUN FIX-NOW.PS1 NOW:
+
+cd C:\Temp
+.\Fix-Now.ps1
+
+What happens:
+1. Analyzes all 170 databases
+2. Shows how many production need fixing
+3. Shows how many non-production need fixing
+4. Fixes production first
+5. Then fixes non-production
+6. Shows summary at end
+
+Then setup MOVEit for weekly monitoring:
+
+Copy Weekly-Optimizer.ps1 and Setup-MOVEit.ps1 to MOVEit server
+Run Setup-MOVEit.ps1
+Done - runs every Monday at 7 AM
+
+Syed Rizvi
