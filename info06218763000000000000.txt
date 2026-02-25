@@ -1,0 +1,21 @@
+Every day at 2 AM:
+  ↓
+Script analyzes all 170 databases
+  ↓
+Finds databases that are:
+  - Too slow (>80% DTU) → Auto-INCREASE
+  - Wasting money (<20% DTU) → Auto-DECREASE
+  ↓
+Makes the changes automatically
+  ↓
+Emails Tony the daily report
+  ↓
+Done! 💰
+
+----------------------------------------------------
+
+Cooling Period: Won't change same database twice within 3 days
+Change Limits: Max 2 tier levels per change
+Size Protection: Won't downgrade if database is too big
+Approval Mode: Can run in "notify-only" mode first
+Rollback Log: Tracks all changes for easy rollback
